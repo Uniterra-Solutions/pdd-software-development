@@ -1,6 +1,6 @@
 # Testing methodology — one business unit, falsified over the whole flow
 
-**Status: adopted direction, parameters still open.** This file is the only place in `pdd-decompose` where
+**Status: adopted direction, parameters still open.** This file is the only place in `pdd:decompose` where
 a test is specified. `SKILL.md`, `assets/TASK.md` and `assets/TASKS.md` carry no propositions, commands,
 test paths or proof pairs. §1–§3 record what was removed and why; §4 is the adopted method; §5 lists the
 numbers that still need a ruling.
@@ -64,7 +64,7 @@ function of the three flows.
 
 ### 4.2 The PRD already carries the generator's source
 
-`pdd-plan` §3 already requires entities with numeric domains, one decision table per operation (inputs,
+`pdd:plan` §3 already requires entities with numeric domains, one decision table per operation (inputs,
 precondition, outcome `apply` or `refuse` with a named class, postcondition), states with legal and
 forbidden moves, and the invariants that hold in every state. That is the specification a model-based
 property test consumes:
@@ -78,7 +78,7 @@ property test consumes:
 | Refusals with a named class | the oracle for the negative branch: the exact class, not "an error" |
 
 No new PRD field is needed. A flow whose decision table cannot be written is under-specified, and the
-correct move is to return to `pdd-plan` rather than write a test that guesses.
+correct move is to return to `pdd:plan` rather than write a test that guesses.
 
 ### 4.3 Three layers, and a count formula without `tasks` in it
 

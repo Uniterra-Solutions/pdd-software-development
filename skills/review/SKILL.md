@@ -1,5 +1,5 @@
 ---
-name: pdd-review
+name: review
 description: "Use when a finished plan needs an independent verdict."
 version: 2.2.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
@@ -8,7 +8,7 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [software-development, review, adversarial, subagents, dispatch]
-    related_skills: [pdd-plan, pdd-decompose, pdd-implement, pdd-explain]
+    related_skills: [plan, decompose, implement, explain]
 ---
 
 # PRD review
@@ -28,8 +28,8 @@ reads, and reviews architecture, migration, removal and subjective judgements.
 | `references/reviewer-code-reading.md` | the code-reading reviewer |
 | `references/finding-schema.md` | both: finding fields, the two axes' evidence requirements, adversarial lists, architecture lists |
 
-Review fixes no code and edits no plan. Once findings are handed over, `pdd-decompose` opens them as new
-tasks and `pdd-implement` dispatches them.
+Review fixes no code and edits no plan. Once findings are handed over, `pdd:decompose` opens them as new
+tasks and `pdd:implement` dispatches them.
 
 ## When to use
 
@@ -37,7 +37,7 @@ tasks and `pdd-implement` dispatches them.
 - The change crosses module boundaries, and the existing tests each cover only their own half.
 - There are `REQ-A`s (architectural requirements), and the question is whether the code really obeys the
   declared architecture.
-- Routing: `pdd-plan` writes the plan, `pdd-decompose` cuts tasks, `pdd-implement` executes, `pdd-explain`
+- Routing: `pdd:plan` writes the plan, `pdd:decompose` cuts tasks, `pdd:implement` executes, `pdd:explain`
   explains it to a non-engineer.
 
 ## Preconditions
@@ -138,7 +138,7 @@ paths** —
 2. **the normative file for that reviewer type**, `reviewer-test-construction.md` or
    `reviewer-code-reading.md`.
 
-Plus the base charter `pdd-implement/references/subagent-charter.md` (compile scope, naming, report format).
+Plus the base charter `pdd:implement/references/subagent-charter.md` (compile scope, naming, report format).
 All three are paths, not pasted text — pasting full text rewrites the contract at dispatch time.
 
 One subagent per unit; dispatch the batch and end the turn without polling; when the parallelism ceiling is
@@ -184,8 +184,8 @@ The whole is not an average: any axis failing means the whole fails.
 
 ### Repair is out of scope
 
-**Repair is not part of a review.** Once the report is handed over, findings go through `pdd-decompose` to
-become new tasks, dispatched in order by `pdd-implement`; review dispatches no fixer, changes no code and
+**Repair is not part of a review.** Once the report is handed over, findings go through `pdd:decompose` to
+become new tasks, dispatched in order by `pdd:implement`; review dispatches no fixer, changes no code and
 edits no plan.
 
 ## Pitfalls
@@ -232,8 +232,10 @@ edits no plan.
 - [ ] unreviewed scope (no model, no oracle, excluded by the cap) is listed;
 - [ ] no code was fixed, nothing was committed, no plan was edited.
 
-> Cross-skill references are written `<skill>/<path>`, relative to the skills category directory
-> (`software-development/`); read them with `skill_view`, not resolved against this skill's own directory.
+> Cross-skill references name the sibling skill and the file separately:
+> `skill_view("pdd:decompose", "references/task-construction.md")`. Every sibling is registered under
+> this plugin's namespace, so the skill argument always carries the `pdd:` prefix and the path is
+> relative to that skill's own directory.
 
 ## References
 
@@ -245,9 +247,9 @@ edits no plan.
   (`REQ-A`/migration/removal/subjective), `clause` mandatory, the order to read in.
 - `references/finding-schema.md` — finding fields, the two axes' evidence requirements, the adversarial case
   list, the hollow-test audit, the cross-module list, the architecture review checklist.
-- `pdd-implement/references/subagent-charter.md` — base charter: compile scope, run only related tests,
+- `pdd:implement/references/subagent-charter.md` — base charter: compile scope, run only related tests,
   naming, report. The brief carries its path.
-- `pdd-decompose/references/testing-methodology.md` — flow, property, budget and pin definitions; the
+- `pdd:decompose/references/testing-methodology.md` — flow, property, budget and pin definitions; the
   test-construction reviewer's counterexamples must land inside that regime.
-- `pdd-decompose/references/task-construction.md`, `task-verification.md`, `task-migration.md`,
+- `pdd:decompose/references/task-construction.md`, `task-verification.md`, `task-migration.md`,
   `task-removal.md` — the four classes' acceptance objects.

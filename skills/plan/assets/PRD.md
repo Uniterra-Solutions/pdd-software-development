@@ -7,7 +7,7 @@
 | Owner | <the person who owns the business rule, or the architecture> |
 | Status | Draft / In review / Handed off |
 | Source | <issue / ticket / conversation of date / regulation> |
-| Next | `pdd-decompose` for a multi-behaviour or architectural change; `pdd-implement` for one behaviour |
+| Next | `pdd:decompose` for a multi-behaviour or architectural change; `pdd:implement` for one behaviour |
 
 **What this document is.** Business logic, behaviour, and the architecture the code must obey. **If a
 sentence can be read out of the code, it does not belong here** — flags, schema keys, file paths, module
@@ -115,7 +115,7 @@ cost ceilings, time windows, and the architecture chosen over its rival.
 | --- | --- | --- | --- |
 | <screen / CLI command / report / statement / third-party API> | <actor> | <what it shows> | <what an error looks like to them> |
 
-Route strings, flag names, payload shapes and schema keys are confirmed by `pdd-decompose` against the tree.
+Route strings, flag names, payload shapes and schema keys are confirmed by `pdd:decompose` against the tree.
 
 ## 9. 非目標
 
@@ -129,5 +129,5 @@ Route strings, flag names, payload shapes and schema keys are confirmed by `pdd-
 ## 11. 交接
 
 - Defaulted decisions: <list with `defaulted — vetoable until work starts`, or `none`>
-- Chosen next skill: <pdd-decompose | pdd-implement>
+- Chosen next skill: <pdd:decompose | pdd:implement>
 - A later change enters as a new decision, dated, with the id it supersedes.

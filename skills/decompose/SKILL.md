@@ -1,5 +1,5 @@
 ---
-name: pdd-decompose
+name: decompose
 description: "Use when a PRD must become typed, dispatched tasks."
 version: 5.1.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
@@ -8,12 +8,12 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [software-development, planning, decomposition, subagents, mermaid]
-    related_skills: [pdd-plan, pdd-implement, pdd-review, pdd-explain]
+    related_skills: [plan, implement, review, explain]
 ---
 
 # PRD task decomposition — four classes of task
 
-pdd-decompose cuts a PRD into four classes of task and lays out the dispatch order that converges fastest.
+pdd:decompose cuts a PRD into four classes of task and lays out the dispatch order that converges fastest.
 Each class has its own authoring rules; this file covers only splitting, classifying, ordering and
 acceptance.
 
@@ -28,7 +28,7 @@ One task has exactly one class. A mixture (moving files while changing behaviour
 adding tests) splits into two tasks, because their acceptance objects differ: behaviour, equivalence,
 architecture compliance, or non-existence.
 
-Requirements come in two kinds, and the task class is derived from the requirement's kind (`pdd-plan` v2.1):
+Requirements come in two kinds, and the task class is derived from the requirement's kind (`pdd:plan` v2.1):
 
 | Requirement | Acceptance object | Tasks |
 | --- | --- | --- |
@@ -65,11 +65,11 @@ coarse one.
 - The work needs parallel dispatch and a declared dependency order.
 - The user names PDD decomposition, or asks for a task breakdown, DAG, work plan or subagent allocation.
 - Handoff: a single-behaviour change one implementer can finish from the PRD alone belongs to
-  `pdd-implement`.
+  `pdd:implement`.
 
 ## Preconditions
 
-- `PRD.md` (business behaviour; `pdd-plan` v2 carries no flags, schema keys or file paths).
+- `PRD.md` (business behaviour; `pdd:plan` v2 carries no flags, schema keys or file paths).
 - Index output `<plan-dir>/TASKS.md` (from `assets/TASKS.md`), task files in `<plan-dir>/tasks/` (from
   `assets/TASK.md`).
 - A task's body exists in exactly one place. Two copies drift, and the subagent follows whichever copy it
@@ -118,7 +118,7 @@ One row per `REQ`:
 
 `REQ | kind F/A | behaviour or structural rule | current state (file:line) | production seam | task classes needed`
 
-A `REQ` with no findable seam is a PRD gap: send it back to `pdd-plan` or ask the user; never invent a seam.
+A `REQ` with no findable seam is a PRD gap: send it back to `pdd:plan` or ask the user; never invent a seam.
 A surface the product needs but no `REQ` covers goes into `AMENDMENTS.md` (conflict, evidence, ruling,
 affected ids), with a `REQ` id appended at the end of that flow and the PRD and its requirement list
 updated to match.
@@ -372,8 +372,10 @@ remodelled.
 - [ ] No numeric quota was used as a splitting criterion; any unit beyond "needs two seams to describe" has
       been split or has its coupling written down.
 
-> Cross-skill references are written `<skill>/<path>`, relative to the skills category directory
-> (`software-development/`); read them with `skill_view`, not resolved against this skill's own directory.
+> Cross-skill references name the sibling skill and the file separately:
+> `skill_view("pdd:decompose", "references/task-construction.md")`. Every sibling is registered under
+> this plugin's namespace, so the skill argument always carries the `pdd:` prefix and the path is
+> relative to that skill's own directory.
 
 ## References
 

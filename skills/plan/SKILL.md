@@ -1,5 +1,5 @@
 ---
-name: pdd-plan
+name: plan
 description: "Use when planning a change: writes a behaviour-first PRD."
 version: 2.1.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
@@ -8,7 +8,7 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [software-development, planning, prd, requirements]
-    related_skills: [pdd-decompose, pdd-implement, pdd-review, pdd-explain]
+    related_skills: [decompose, implement, review, explain]
 ---
 
 # PRD Planning — business logic and behaviour
@@ -20,7 +20,7 @@ who can still change it cheaply.
 **The one rule that keeps the document small: if a sentence can be read out of the code, it does not belong
 in the PRD.** Flags, schema keys, file paths, module layouts, endpoint tables, response shapes, error-code
 internals, timeout values, buffer sizes and test designs are all discoverable from the tree. Written into a
-PRD they become micro-decisions that `pdd-decompose` inherits as if they were requirements, and the plan
+PRD they become micro-decisions that `pdd:decompose` inherits as if they were requirements, and the plan
 then decomposes into micro-tasks with micro-verification — the failure this document exists to prevent.
 
 What survives the rule is short: the business intent, the behaviour, the refusals, the invariants, the
@@ -44,8 +44,8 @@ their acceptance objects differ, and merged together neither side gets verified.
   batch, or asks for a PRD / requirements document.
 - The request is vague enough that implementation would start with guesses about the business.
 - A change spans several behaviours, and later agents need one statement of what the business now does.
-- Handoff: `pdd-decompose` cuts the work into four classes of task, `pdd-implement` implements one seam,
-  `pdd-review` judges the code, `pdd-explain` re-tells this document to a non-engineer.
+- Handoff: `pdd:decompose` cuts the work into four classes of task, `pdd:implement` implements one seam,
+  `pdd:review` judges the code, `pdd:explain` re-tells this document to a non-engineer.
 
 ## Preconditions
 
@@ -92,7 +92,7 @@ Ask until the next answer would leave the document unchanged. Questions that ear
 - which existing promise this change weakens, and who agreed to that.
 
 Do not spend a round on stack, schema, flags or file layout. Those are implementation choices that the
-tree and `pdd-decompose` settle; asking the business owner about them produces decisions nobody owns.
+tree and `pdd:decompose` settle; asking the business owner about them produces decisions nobody owns.
 
 ### 4. Write the business model
 
@@ -185,12 +185,12 @@ decision that merely restates the implementation belongs in the commit message.
 
 One row per surface (screen, CLI command, report, statement, API a third party integrates): who uses it,
 what they see in it, and what an error looks like to them. The route string, flag name, payload shape and
-schema keys are confirmed by `pdd-decompose` against the tree; they are not this document's business.
+schema keys are confirmed by `pdd:decompose` against the tree; they are not this document's business.
 
 ### 10. Self-check and hand off
 
 Walk the checklist below, then tell the user where the PRD sits and which decisions were defaulted. The
-complex change goes to `pdd-decompose`; the single-behaviour change goes to `pdd-implement`.
+complex change goes to `pdd:decompose`; the single-behaviour change goes to `pdd:implement`.
 
 **Sweep the finished draft for what your own hand wrote in.** The author writes flag names, schema keys and
 paths while thinking about the surface, so they arrive by default and no amount of rereading removes them.
@@ -309,7 +309,7 @@ plus a measurement command inside "how it is checked" and the error shape inside
 ## Pitfalls
 
 - **The PRD is a spec of the implementation.** Flags, schema keys, endpoint tables, file paths, timeouts
-  and test plans make the document long and make `pdd-decompose` micro-manage: it inherits each constant as
+  and test plans make the document long and make `pdd:decompose` micro-manage: it inherits each constant as
   a requirement and splits along them. If a sentence would survive deletion of the codebase, keep it.
 - **One section per endpoint.** An endpoint list is an interface inventory; it says nothing about what goes
   wrong for the actor, and it changes shape every time the transport does.
@@ -362,11 +362,13 @@ plus a measurement command inside "how it is checked" and the error shape inside
 - [ ] the requirements and the decisions form one consistent conjunction when read together;
 - [ ] every open question names the observation that would close it, and defaults are marked;
 - [ ] a business owner could read each flow and disagree with something specific;
-- [ ] the document names its source and date, and names the next skill (`pdd-decompose` or
-      `pdd-implement`).
+- [ ] the document names its source and date, and names the next skill (`pdd:decompose` or
+      `pdd:implement`).
 
-> Cross-skill references are written `<skill>/<path>`, relative to the skills category directory
-> (`software-development/`); read them with `skill_view`, not resolved against this skill's own directory.
+> Cross-skill references name the sibling skill and the file separately:
+> `skill_view("pdd:decompose", "references/task-construction.md")`. Every sibling is registered under
+> this plugin's namespace, so the skill argument always carries the `pdd:` prefix and the path is
+> relative to that skill's own directory.
 
 ## References
 

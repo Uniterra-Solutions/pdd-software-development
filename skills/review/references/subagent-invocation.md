@@ -8,8 +8,8 @@ main agent 用這份文件派遣審查者。它只管「怎麼派」，審查內
 
 ```
 任務檔目錄：  <plan-dir>/tasks/              ← 本 unit 的任務檔在裡面，只讀
-你的規範：    <pdd-review>/references/reviewer-<type>.md   ← type = test-construction | code-reading
-基礎規範：    <pdd-implement>/references/subagent-charter.md ← 編譯範圍、命名、報告
+你的規範：    <pdd:review>/references/reviewer-<type>.md   ← type = test-construction | code-reading
+基礎規範：    <pdd:implement>/references/subagent-charter.md ← 編譯範圍、命名、報告
 ```
 
 **為什麼是路徑而不是內文。** 三個理由：
@@ -28,7 +28,7 @@ main agent 用這份文件派遣審查者。它只管「怎麼派」，審查內
 你的 scope：  <任務 id 清單，最多 3 件>
 任務檔目錄：  <plan-dir>/tasks/            ← 只讀
 你的規範：    references/reviewer-<type>.md ← 照它執行
-基礎規範：    pdd-implement/references/subagent-charter.md
+基礎規範：    pdd:implement/references/subagent-charter.md
 標準：        <plan-dir>/PRD.md、<plan-dir>/TASKS.md  ← 只讀
 要回答的問題：<3–6 條，逐條可判定>
 輸出：        <finding 格式；測試構造型另附 patch 與命令>

@@ -1,5 +1,5 @@
 ---
-name: pdd-implement
+name: implement
 description: "Use when a TASKS.md exists and its DAG must be executed."
 version: 2.3.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
@@ -8,12 +8,12 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [software-development, implementation, subagents, dispatch]
-    related_skills: [pdd-plan, pdd-decompose, pdd-review, pdd-explain]
+    related_skills: [plan, decompose, review, explain]
 ---
 
 # Executing a scheduled task DAG
 
-One goal: **in the order `pdd-decompose` set, dispatch every task in `TASKS.md`, accept each against the
+One goal: **in the order `pdd:decompose` set, dispatch every task in `TASKS.md`, accept each against the
 acceptance object of its own class, integrate, then dispatch the next one.**
 
 It does not set the order, does not edit tasks, does not write tests or models, does not judge whether a
@@ -23,22 +23,22 @@ requirement is right, and does not do a quality review. It is the executor, not 
 
 - `TASKS.md` and its `tasks/` directory exist, and the work is to execute the DAG they describe.
 - A layer of ready tasks must be dispatched in parallel and each result accepted before the next layer.
-- Routing: order, gates and task boundaries belong to `pdd-decompose`; requirement correctness belongs to
-  `pdd-plan` or the user; quality judgement belongs to `pdd-review`, and only when the user asks.
+- Routing: order, gates and task boundaries belong to `pdd:decompose`; requirement correctness belongs to
+  `pdd:plan` or the user; quality judgement belongs to `pdd:review`, and only when the user asks.
 
-**Without `TASKS.md` this skill has no input.** Report that, and ask the user to run `pdd-plan` and
-`pdd-decompose` first. A one-off small change is ordinary engineering work: it is not part of the PDD
+**Without `TASKS.md` this skill has no input.** Report that, and ask the user to run `pdd:plan` and
+`pdd:decompose` first. A one-off small change is ordinary engineering work: it is not part of the PDD
 process and must not borrow this skill's name to be improvised on the spot.
 
 ### What this skill does not do
 
 | Thing | Belongs to |
 | --- | --- |
-| Deciding order, gates, task boundaries, owned files | `pdd-decompose` |
-| Splitting tasks, merging tasks, changing dependency direction | `pdd-decompose` (via amendment) |
+| Deciding order, gates, task boundaries, owned files | `pdd:decompose` |
+| Splitting tasks, merging tasks, changing dependency direction | `pdd:decompose` (via amendment) |
 | Writing tests, models, baselines, constraint scripts | the verification task (A/B/C) |
-| Judging whether a requirement is right or worth doing | `pdd-plan`, or the user |
-| Quality judgement, adversarial review | `pdd-review`, and only when the user asks |
+| Judging whether a requirement is right or worth doing | `pdd:plan`, or the user |
+| Quality judgement, adversarial review | `pdd:review`, and only when the user asks |
 | commit, push, tag, deploy, version numbers | the user's explicit instruction |
 
 ## Preconditions
@@ -49,7 +49,7 @@ process and must not borrow this skill's name to be improvised on the spot.
 - The repo.
 
 The contract it executes is read-only except through dated amendments; a contradiction found here stops the
-run and returns to `pdd-decompose`, it is never patched in place.
+run and returns to `pdd:decompose`, it is never patched in place.
 
 ## Workflow
 
@@ -63,7 +63,7 @@ This is not a re-review of the plan, only a check that it can run:
 - the ready set is computed from the set **accepted by the dispatcher**, not from what subagents
   self-reported as successful.
 
-If any of these fails: stop, report with evidence, hand back to `pdd-decompose`. Do not fill the gap
+If any of these fails: stop, report with evidence, hand back to `pdd:decompose`. Do not fill the gap
 yourself, do not guess, do not edit the contract in place.
 
 ### 2. Shared work before dispatch (the dispatcher does it, not a subagent)
@@ -184,7 +184,7 @@ failing verdict, and it surfaces in the step where you ask for "all six checks g
 Per layer: which tasks were dispatched, which were accepted, the gate states, any stops.
 
 At the end: DAG completion, task counts and acceptance counts per class, unresolved items (each with its
-command and raw output). Do not enter `pdd-review` on your own initiative, and do not commit, push, tag or
+command and raw output). Do not enter `pdd:review` on your own initiative, and do not commit, push, tag or
 deploy.
 
 ## Decision rules
@@ -223,7 +223,7 @@ check afterwards" — that is cancelling the gate.
   environment).
 
 Stopping carries three things: the command and its raw output, the minimal counterexample, and which clause
-of the contract it contradicts. Hand back to `pdd-decompose` to fix the contract, and let the user decide
+of the contract it contradicts. Hand back to `pdd:decompose` to fix the contract, and let the user decide
 whether to re-dispatch.
 
 **No plan edits mid-run**: no re-cutting, no merging, no relaxing acceptance, no rewriting a clause because
@@ -281,16 +281,18 @@ The full catalogue is in `references/pitfalls.md`. The five most recurrent:
 - [ ] no commit, push, tag, deploy or version change happened;
 - [ ] every stop carries its command, raw output and the contract clause it contradicts.
 
-> Cross-skill references are written `<skill>/<path>`, relative to the skills category directory
-> (`software-development/`); read them with `skill_view`, not resolved against this skill's own directory.
+> Cross-skill references name the sibling skill and the file separately:
+> `skill_view("pdd:decompose", "references/task-construction.md")`. Every sibling is registered under
+> this plugin's namespace, so the skill argument always carries the `pdd:` prefix and the path is
+> relative to that skill's own directory.
 
 ## References
 
-- `pdd-decompose/assets/TASK.md` — the task file's shape; the brief is taken from it verbatim.
-- `pdd-decompose/references/task-construction.md`, `task-verification.md`, `task-migration.md`,
+- `pdd:decompose/assets/TASK.md` — the task file's shape; the brief is taken from it verbatim.
+- `pdd:decompose/references/task-construction.md`, `task-verification.md`, `task-migration.md`,
   `task-removal.md` — each class's fields and acceptance objects.
-- `pdd-decompose/references/testing-methodology.md` — A/B budgets, seeds, shrinking and failure reading.
-- `pdd-decompose/references/ownership-rules.md` — one writer per file and the class boundaries; consult it
+- `pdd:decompose/references/testing-methodology.md` — A/B budgets, seeds, shrinking and failure reading.
+- `pdd:decompose/references/ownership-rules.md` — one writer per file and the class boundaries; consult it
   when judging whether a delta is out of bounds.
 - `scripts/mutate_check.py` — negative control: change one byte at an exactly-once anchor, run the check,
   restore, rerun. Exit 0 means red after the perturbation, green after restoration and byte-identical;

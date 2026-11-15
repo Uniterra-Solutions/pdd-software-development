@@ -1,5 +1,5 @@
 ---
-name: pdd-explain
+name: explain
 description: "Use when a plan must be explained to a non-engineer."
 version: 1.5.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
@@ -8,14 +8,14 @@ platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [software-development, communication, explanation, metaphor, prd]
-    related_skills: [pdd-plan, pdd-decompose, pdd-implement, pdd-review]
+    related_skills: [plan, decompose, implement, review]
 ---
 
 # Plain-Language Plan Explanation
 
-pdd-explain turns a plan into one explanation a non-engineer can act on: what each requirement
+pdd:explain turns a plan into one explanation a non-engineer can act on: what each requirement
 is for, what each design decision bought and cost, and what each check catches. The plan here is the
-`PRD.md` that `pdd-plan` produced together with the task list that `pdd-decompose` produced. The
+`PRD.md` that `pdd:plan` produced together with the task list that `pdd:decompose` produced. The
 explanation is a deliverable in its own right, and it works as a test instrument: a plan that resists
 explanation without jargon usually rests on an assumption nobody stated.
 
@@ -32,8 +32,8 @@ and find a missing one.
   non-technical reader").
 - The owner wants to approve or challenge a plan before implementation money is spent.
 - A change must be explained to someone who will never open the repo.
-- Routing: `pdd-plan` writes and revises the plan, `pdd-decompose` splits it, `pdd-implement` implements
-  it, and `pdd-review` judges code quality. This skill explains the plan and leaves the verdict to the
+- Routing: `pdd:plan` writes and revises the plan, `pdd:decompose` splits it, `pdd:implement` implements
+  it, and `pdd:review` judges code quality. This skill explains the plan and leaves the verdict to the
   owner.
 
 ## Preconditions
