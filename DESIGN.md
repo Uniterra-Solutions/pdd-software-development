@@ -192,4 +192,27 @@ The invariant underneath: **no role may silently rewrite another role's artifact
 
 ---
 
-*Applies to plugin `pdd` 1.1.0: `pdd:plan`, `pdd:decompose`, `pdd:implement`, `pdd:review`, `pdd:explain`.*
+## Appendix: the companion skill, and why it is not a sixth stage
+
+`pdd:study` reconstructs the business branches a repository already has and leaves them, with citations, in a
+per-directory `AGENTS.md`. It is deliberately outside the pipeline: no gate, no task class, no acceptance
+object of its own.
+
+- **It answers "what is", not "what should be".** Every other skill in this bundle operates on a claim about
+  intended behaviour. The inventory operates on observed behaviour and its only assertion is that the citation
+  resolves — mechanically checkable, which is why it can be automated without the reviewer that §6 requires for
+  judgement.
+- **The unit is the directory because the reader is local.** An agent about to edit a file reads the file in
+  that directory; a root document three levels up is read once, at the start, and then forgotten. Nested
+  `AGENTS.md` files follow the reader down.
+- **One subagent per unit is the same attribution argument as §4.** A wrong row must name a directory, so the
+  repair is a re-dispatch rather than an investigation.
+- **Its honest limit.** A branch table cannot tell you whether a decision is the right one, whether a seam sits
+  in the place a maintainer would put it, or what the product is for. It tells you where the code changes
+  behaviour and what makes each change fire — the ground truth that §3's typed acceptance, §4's class table and
+  §5's flow models all assume someone already has.
+
+---
+
+*Applies to plugin `pdd` 1.2.0: `pdd:plan`, `pdd:decompose`, `pdd:implement`, `pdd:review`, `pdd:explain`, and the
+companion `pdd:study`.*

@@ -1,9 +1,12 @@
 # pdd-software-development
 
-A Hermes plugin that ships **Proposition-Driven Development (PDD)** as five bundled skills.
+A Hermes plugin that ships **Proposition-Driven Development (PDD)** as five bundled skills, plus one
+companion skill that maps an existing codebase so the other five have ground truth to work from.
+
 PDD is a business-first spec workflow: the PRD describes business logic and observable behaviour,
 decomposition yields four classes of task, and verification is modelled per business flow rather
-than per task.
+than per task. `pdd:study` is the input side of the same argument — it reconstructs the branches a
+codebase already has, with citations, before anything is planned against them.
 
 ## Install
 
@@ -29,6 +32,7 @@ same-named skill on disk — call the qualified name:
 | `pdd:implement` | Dispatch the DAG batch by batch, accept each task by its class, merge the batch back into the recorded working branch, close its worktrees, stop on contradiction |
 | `pdd:review` | Read PRD + tasks, write a review DAG, dispatch two reviewer types, synthesise findings |
 | `pdd:explain` | Explain a plan to a non-engineer without inventing claims |
+| `pdd:study` | Companion: one read-only subagent per workspace member or package root reconstructs every business branch, its trigger and its selection path, and writes the result as a per-directory `AGENTS.md`; the main agent re-resolves every citation and indexes them all in the root `AGENTS.md` |
 
 ```
 skill_view("pdd:decompose")
@@ -58,8 +62,10 @@ architecture check), the two gates, and the costs the process accepts.
 
 - Hermes Agent with plugin support (`hermes plugins doctor .` should pass).
 - Python 3.10+ (the plugin itself has no third-party dependencies).
-- `pdd:implement/scripts/mutate_check.py` needs a working Python interpreter and is invoked by the
-  skill, not by the plugin loader.
+- `pdd:implement/scripts/mutate_check.py` and the two `pdd:study` scripts need a working Python
+  interpreter and are invoked by the skills, not by the plugin loader.
+- `pdd:study --render` optionally shells out to `mmdc` or `npx @mermaid-js/mermaid-cli`; without one,
+  the mermaid check falls back to a lint and says so.
 
 ## Layout
 
@@ -71,6 +77,7 @@ skills/decompose/      SKILL.md + assets/ + references/
 skills/implement/      SKILL.md + references/ + scripts/mutate_check.py
 skills/review/         SKILL.md + references/
 skills/explain/        SKILL.md + assets/ + references/
+skills/study/          SKILL.md + assets/ + references/ + scripts/  (list_members, check_agents_md)
 ```
 
 ## Versioning
