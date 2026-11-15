@@ -43,6 +43,17 @@ skill_view("pdd:decompose", "references/task-verification.md")
   the plugin is enabled, under their qualified names.
 - Disabling the plugin removes them from the index without deleting anything.
 
+## Design philosophy
+
+The process is built on one asymmetry: the cost of writing a change has collapsed, while the cost of
+verifying one has not. Every design decision follows from choosing evidence, not throughput, as the binding
+constraint — acceptance is typed, tasks are classified by acceptance object, and the unit of modelling is the
+business flow.
+
+Read [DESIGN.md](DESIGN.md) for the full argument: the bounded-step falsification thesis, the four task
+classes and where they come from, the three shapes of verification (modelling / behavioural guard /
+architecture check), the two gates, and the costs the process accepts.
+
 ## Requirements
 
 - Hermes Agent with plugin support (`hermes plugins doctor .` should pass).
