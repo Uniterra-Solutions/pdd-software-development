@@ -1,7 +1,7 @@
 ---
 name: study
 description: "Use when a repo's business branches must become AGENTS.md."
-version: 1.0.0
+version: 1.1.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -94,6 +94,10 @@ produces three things:
 1. the **branch inventory** table (`references/branch-inventory.md`);
 2. the **selection-path graph** in mermaid, one graph per entry point (`references/mermaid-selection-path.md`);
 3. `<member>/AGENTS.md`, assembled by `references/agents-md-format.md`.
+
+Its brief carries the survey procedure (`references/branch-survey.md`) and the diagram guide
+(`references/diagram-choice.md`), which are the two places a cartographer drifts: the first into linear reading,
+the second into drawing a picture of the code.
 
 Its report also names the nested package roots it found, the cross-member dependencies it saw, and the
 branches whose trigger it could not resolve. Those three lists are the input to the next phase — a round-1
@@ -233,6 +237,11 @@ Judgement (read by the main agent):
 
 - `references/branch-inventory.md` — what counts as a business branch, the row schema, trigger form,
   cross-member and unreachable handling.
+- `references/branch-survey.md` — the field procedure: survey order, grep cheat sheet per ecosystem, the six
+  counts that mean the survey is done, and the anti-patterns that cost the most time.
+- `references/diagram-choice.md` — whether to draw at all, which shape answers which question, what each shape
+  cannot show, and the rules that apply to every diagram.
+- `references/mermaid-templates.md` — rendered, copy-paste sources for the ten shapes that are worth drawing.
 - `references/mermaid-selection-path.md` — graph shape, node and edge conventions, size discipline, worked
   example, validation.
 - `references/agents-md-format.md` — required sections, the marked-block merge rule, provenance, nesting.

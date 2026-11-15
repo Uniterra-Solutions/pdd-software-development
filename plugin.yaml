@@ -1,5 +1,5 @@
 name: pdd
-version: 1.2.0
+version: 1.2.1
 description: Proposition-Driven Development — five bundled skills (pdd:plan, pdd:decompose, pdd:implement, pdd:review, pdd:explain) for business-first specs, four task classes and flow-level verification, plus pdd:study, which reconstructs a codebase's business branches into per-directory AGENTS.md files.
 author: Uniterra Solutions Ltd.
 license: MIT

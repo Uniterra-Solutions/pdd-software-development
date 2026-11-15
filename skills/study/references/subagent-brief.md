@@ -11,8 +11,11 @@ role:        code cartographer. Read-only except for the ONE AGENTS.md you own.
 project:     <project root>                      ← read-only
 your unit:   <member or package_root path>       ← the whole of your assignment
 your output: <unit>/AGENTS.md                    ← the only file you may create or edit
-rules:       <plugin>/skills/study/references/branch-inventory.md
+rules:       <plugin>/skills/study/references/branch-inventory.md    ← what a row must contain
+             <plugin>/skills/study/references/branch-survey.md         ← how to find them fast
+             <plugin>/skills/study/references/diagram-choice.md        ← whether and what to draw
              <plugin>/skills/study/references/mermaid-selection-path.md
+             <plugin>/skills/study/references/mermaid-templates.md     ← copy-paste sources
              <plugin>/skills/study/references/agents-md-format.md
 template:    <plugin>/skills/study/assets/AGENTS.template.md
 parent file: <path, round ≥ 2 only>              ← read-only, your input

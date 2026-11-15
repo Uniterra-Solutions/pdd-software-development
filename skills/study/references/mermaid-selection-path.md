@@ -6,6 +6,8 @@ triggers any branch — which is exactly the table's `trigger` column, drawn.
 
 ## 1. Shape
 
+A copy-paste source is in `references/mermaid-templates.md` §1; this section states the conventions it must obey.
+
 One `flowchart TD` per entry point. Three node kinds, and nothing else:
 
 ```mermaid
