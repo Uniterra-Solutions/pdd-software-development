@@ -1,7 +1,7 @@
 ---
 name: implement
 description: "Use when a TASKS.md exists and its DAG must be executed."
-version: 2.3.0
+version: 2.4.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -14,7 +14,8 @@ metadata:
 # Executing a scheduled task DAG
 
 One goal: **in the order `pdd:decompose` set, dispatch every task in `TASKS.md`, accept each against the
-acceptance object of its own class, integrate, then dispatch the next one.**
+acceptance object of its own class, merge the accepted work back into the current working branch and close
+its worktree, then dispatch the next batch.**
 
 It does not set the order, does not edit tasks, does not write tests or models, does not judge whether a
 requirement is right, and does not do a quality review. It is the executor, not a second planner.
@@ -39,7 +40,8 @@ process and must not borrow this skill's name to be improvised on the spot.
 | Writing tests, models, baselines, constraint scripts | the verification task (A/B/C) |
 | Judging whether a requirement is right or worth doing | `pdd:plan`, or the user |
 | Quality judgement, adversarial review | `pdd:review`, and only when the user asks |
-| commit, push, tag, deploy, version numbers | the user's explicit instruction |
+| merging accepted work into the working branch, with one commit per accepted task | this skill, §5 |
+| push, tag, deploy, version numbers | the user's explicit instruction |
 
 ## Preconditions
 
@@ -72,6 +74,10 @@ Worktrees, baselines and shared prerequisites are detailed in `references/subage
 
 - One worktree per subagent, each with its own build output directory (Rust's `CARGO_TARGET_DIR`): a shared
   target lets one person's build pollute everyone's.
+- **Record the working branch before the first worktree exists**: `git rev-parse --abbrev-ref HEAD`, written
+  into the run ledger. Every merge targets that name (§5). A detached HEAD, or a checked-out branch that
+  changed mid-run, stops the run — merging into whatever `HEAD` happens to be at the time is how a batch
+  lands in the wrong branch, and afterwards no evidence distinguishes it from the right one.
 - An explicit dispatch baseline (hash list) per worktree. A dirty main tree is expressed as an overlay: no
   commits, no stashing of the user's work, and every unaccepted sibling delta excluded.
 - manifest, lockfile, shared enum/type modules, the migration chain, registry/route table/plugin list,
@@ -155,18 +161,54 @@ Common principles:
   another flow's tests is out of bounds: reject that round's conclusions and have it rerun per
   `references/subagent-charter.md`.
 
-### 5. Integrate
+### 5. Merge back and close the worktree, per batch
 
-Integrate the accepted delta back into the main tree: verify the destination baseline hashes first, resolve
-conflicts explicitly, and never overwrite newer work in the main tree. After integrating, rerun that task's
-observation **in the main tree**, plus the existing modules and suites it affects. A worktree is removed
-only after integration verification passes and the report and patch are saved; a failed, unintegrated
-worktree stays with its blocker attached.
+A batch ends when every task in it is accepted or retained. Then, **before the next batch opens**, each
+accepted delta is merged into the current working branch and its worktree is removed. Deferring the merge to
+the end of the run is what produces two worktrees whose deltas can no longer both land: the later one was
+built on a baseline the earlier one has already changed.
+
+**The target branch is the one recorded in §2, never re-read from `HEAD`.** Merging into "whatever is
+checked out now" lands a batch in the wrong place after the user switches branches, and the log looks
+innocent. A branch change detected mid-run stops the run.
+
+**The dispatcher merges; subagents never do** — no commit, no merge, no cherry-pick, no branch
+(`references/subagent-dispatch.md` §1). Two mechanisms, chosen by the state of the main tree:
+
+- **clean main tree** → commit inside the worktree on `pdd/<task-id>`, then `git merge --no-ff
+  pdd/<task-id>` into the working branch, so the ancestry and the attribution are real;
+- **main tree carrying the user's uncommitted work** (the usual case) → apply the delta as a patch, stage
+  only the delta's own paths (`git add <path>` per owned file) and commit on the working branch. No
+  stashing, no committing the user's files, no `git add -A`.
+
+Before applying, re-verify the destination hashes. A path whose content changed since the baseline is newer
+work: stop and report, never overwrite it. One commit per accepted task, the message naming the task id and
+its class, so a later revert is attributable — a batch of three accepted tasks gives three commits in DAG
+order. Conflicts are resolved explicitly by the dispatcher and recorded in the layer report; an unresolvable
+conflict stops the run with the clause it contradicts.
+
+**Then verify in the main tree**: that task's observation rerun there, plus the existing modules and suites
+it affects, plus the typecheck leg. A green worktree proves nothing about the main tree, where a sibling's
+accepted delta is now also present.
+
+**Then remove the worktree, in this order**: `git worktree remove <path>` → `git worktree prune` →
+`git branch -D pdd/<task-id>` → read `git worktree list` and confirm the path is gone. Removing before
+verifying leaves nowhere to run the failing command; verifying without removing leaves a directory that
+keeps a stale baseline alive and the next layer may reuse it by accident.
+
+**Exactly one case keeps a worktree**: acceptance failed, or the merge could not be resolved. It stays with
+its blocker attached, is named in the layer report, and is counted in §7. There is no third case, and "I
+might still need it" is not one.
 
 ### 6. Next layer, until the DAG is exhausted
 
-The DAG being exhausted ends the run. `TASKS.md` sets the order; the dispatcher does not reorder — when the
-parallelism ceiling forces waves, wave order still obeys the DAG's partial order.
+The DAG being exhausted ends the dispatching, not the run: §5's cleanup of the last batch and §7's closing
+check come after it. `TASKS.md` sets the order; the dispatcher does not reorder — when the parallelism ceiling
+forces waves, wave order still obeys the DAG's partial order.
+
+**A batch does not open while the previous batch's worktrees exist.** The exception is a retained worktree
+named in the layer report; its blocker is worked or escalated first, because a second batch built on a
+baseline that excludes the first batch's merged deltas produces reports that are green and wrong.
 
 **Before every dispatch, reconcile the register's ids against the set "accepted ∪ in flight".** In a graph
 of a dozen or so tasks, a skipped mid-graph node raises no error: it may have no downstream, or its
@@ -179,9 +221,27 @@ that catches "one C task was never dispatched": a missing script returns `MODULE
 failing verdict, and it surfaces in the step where you ask for "all six checks green". A brief that says
 "run all the checks" without the names has no such probe — the subagent runs only the ones it finds.
 
-### 7. Report
+### 7. Close the run: no worktree left behind
 
-Per layer: which tasks were dispatched, which were accepted, the gate states, any stops.
+The DAG being exhausted is not the end of the run; the worktree ledger being empty is.
+
+- `git worktree list` shows exactly the worktrees that existed **before** the run — normally one, the main
+  tree — plus any retained worktree named in a layer report, and nothing else. Paste the raw output.
+- `git branch --list 'pdd/*'` is empty. A leftover branch is a leftover worktree in another form, and it will
+  be picked up by the next run as if it were current.
+- `git worktree prune` has run, so no administrative entry survives a directory that was deleted by hand.
+- The count matches the ledger: one worktree created per dispatched task, one removed per accepted task, one
+  retained per blocked task. Two numbers that disagree mean a merge or a removal was skipped, and the task
+  it belonged to is now unmerged.
+
+A run whose DAG is exhausted while `git worktree list` still lists three paths has not finished: its last
+batch is unmerged, and every measurement taken in the main tree since is missing those deltas. Report the
+paths and their tasks; do not clean up silently and do not call the run complete.
+
+### 8. Report
+
+Per layer: which tasks were dispatched, which were accepted, which commits landed on which branch, which
+worktrees were removed, the gate states, any stops.
 
 At the end: DAG completion, task counts and acceptance counts per class, unresolved items (each with its
 command and raw output). Do not enter `pdd:review` on your own initiative, and do not commit, push, tag or
@@ -250,7 +310,7 @@ from the previous version.
 
 ## Pitfalls
 
-The full catalogue is in `references/pitfalls.md`. The five most recurrent:
+The full catalogue is in `references/pitfalls.md`. The most recurrent:
 
 - **Treating a subagent's self-report as acceptance.** "Done" is neither an observable purpose nor proof
   that the delta is inside owned.
@@ -263,6 +323,12 @@ The full catalogue is in `references/pitfalls.md`. The five most recurrent:
   former; touching a sibling's file is the latter.
 - **Calling zero selected cases green.** Green without executed volume is unfinished work, and dispatching
   past it lets the defect surface two layers later.
+- **Merging at the end of the run instead of at the end of the batch.** The second worktree was opened on a
+  baseline the first one has since changed, so the two deltas cannot both land and the conflict is
+  unattributable — merge and remove per batch, in §5's order.
+- **Leaving worktrees and `pdd/*` branches behind.** A stale worktree keeps an old baseline alive, and the
+  next layer picks it up thinking it is current — the run is closed by `git worktree list` and
+  `git branch --list 'pdd/*'`, not by the DAG being exhausted.
 
 ## Verification
 
@@ -276,9 +342,15 @@ The full catalogue is in `references/pitfalls.md`. The five most recurrent:
       B has a bit-for-bit comparison, C has a deliberate red, migration has a retention list, removal has an
       absence proof);
 - [ ] existing tests were not weakened, skipped or deleted unless the task listed them in its own report;
-- [ ] after integration the affected modules and suites were rerun in the main tree;
+- [ ] after each merge the affected modules and suites were rerun in the main tree;
 - [ ] the typecheck error count did not rise above the baseline;
-- [ ] no commit, push, tag, deploy or version change happened;
+- [ ] every accepted task's delta was merged into the working branch recorded in §2, one commit per task
+      naming its id and class, and no merge landed after the next batch had opened;
+- [ ] every merge was verified in the main tree before its worktree was removed, and every removed worktree's
+      directory and `pdd/<task-id>` branch are gone;
+- [ ] the closing check ran: `git worktree list` lists only the pre-existing worktrees plus retained ones
+      named in a layer report, `git branch --list 'pdd/*'` is empty, `git worktree prune` has run;
+- [ ] no push, tag, deploy or version change happened;
 - [ ] every stop carries its command, raw output and the contract clause it contradicts.
 
 > Cross-skill references name the sibling skill and the file separately:

@@ -1,7 +1,7 @@
 ---
 name: decompose
 description: "Use when a PRD must become typed, dispatched tasks."
-version: 5.1.0
+version: 5.2.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -66,6 +66,8 @@ coarse one.
 - The user names PDD decomposition, or asks for a task breakdown, DAG, work plan or subagent allocation.
 - Handoff: a single-behaviour change one implementer can finish from the PRD alone belongs to
   `pdd:implement`.
+- The cut is finished and about to be handed off: it still has to survive the scope/acceptance audit (§8)
+  before `pdd:implement` may execute it.
 
 ## Preconditions
 
@@ -232,7 +234,48 @@ success is not acceptance.
 trace and the seed, and the main agent opens a construction or migration task; that task re-enters the
 production side, and the gate closes again on the affected flows.
 
-### 8. Review, then hand off
+### 8. Audit the cut (one auditor per three tasks)
+
+A cut reads plausibly and still fails on contact: a scope that is not minimal, an acceptance criterion
+nobody can decide, two tasks owning one file. Its author cannot see that, because the cut was written out
+of the same understanding that produced the error. So the finished cut is audited by fresh readers before
+handoff, and the audit costs a fraction of one wrongly dispatched task.
+
+**Grouping is one subagent per three tasks**: with `n = |register|`, that is `ceil(n/3)` auditors, the
+register partitioned into contiguous groups in dispatch order (wave by wave, id ascending), at most three
+tasks each. Contiguous grouping keeps both sides of a seam in front of the same reader; at every group boundary
+the auditor also reads the neighbouring task files (read only) and reports a defect if the seam across the
+boundary is wrong. Four tasks in one group is not a group — split it and dispatch a fourth auditor.
+
+**The auditor is read-only and cannot rewrite the plan.** Its brief hands it paths (`PRD.md`, `TASKS.md`,
+the `tasks/` directory, its own slice of ids, the class authoring files) and asks three questions per task:
+
+- **scope** — one purpose? is the owned set minimal and sufficient, every file serving that purpose, and no
+  file also owned by a sibling? does the class match the action the file describes (a move written as
+  "create a module" is a construction task pretending to be a migration)?
+- **acceptance** — is the criterion the one its class demands, and is it decidable by a command the task
+  names? construction: an observable purpose reachable from the real entry point. A: a model plus a
+  falsifiable property within a stated budget. B: a baseline frozen before the change, rerun bit for bit.
+  C: all green before and after, plus a deliberate red. migration: an oracle and a retention list. removal:
+  an absence proof with zero references.
+- **boundary** — are the declared dependencies sufficient and pointing the right way? is a shared file owned
+  by nobody or by two people? does one seam straddle two tasks, so that neither can be accepted alone?
+
+Brief, grouping arithmetic and the finding table are in `references/scope-audit.md`. A slice with no finding
+reports "three tasks read, zero findings" — never a summary of the plan, and never silence.
+
+**An audit is a report, not a rewrite.** A finding names the task id, the clause it violates, the evidence
+(the quoted sentence, or `file:line` in the repo), and the smallest fix. An auditor with write access
+re-cuts the plan to its own taste, and the ids every other piece of evidence is indexed by move with it.
+
+**The main agent reproduces every finding before acting on it** — opens the file, checks the clause,
+confirms the claim. Subagent reports are not acceptance here either. An adopted finding lands as a dated
+amendment on that task, id kept, with the DAG, register and waves refreshed; a finding that does not
+reproduce is rejected with the reason recorded, not quietly dropped. Tasks changed by an amendment are
+re-audited; the rest are not. A cut with no findings is a normal outcome of this step, and a cut with
+findings that all get adopted is the reason the step exists.
+
+### 9. Review, then hand off
 
 No document-verification script exists, and none is added. A linter can only check presence — the id has a
 field, the heading exists — while "is this sentence true and useful" cannot be checked mechanically; score
@@ -255,6 +298,9 @@ Checks (read by the main agent):
       (behavioural baseline + architecture check) are drawn;
 - [ ] every surface the plan claims to deliver is produced by some construction task's purpose or owned
       files;
+- [ ] every task was read by an auditor that did not write it, `ceil(n/3)` auditors covered the whole
+      register, every seam boundary fell inside some auditor's slice, and each finding is either adopted by
+      a dated amendment or rejected with its reason recorded;
 - [ ] reading one task file alone is enough to start work.
 
 ## Decision rules
@@ -356,6 +402,17 @@ remodelled.
   pinning it means touching a contract that is not yours → before landing, run
   `grep -rn 'readdir' <the scanning side>` to find which directories are enumerated and which are not; a
   directory nobody enumerates is where the new artifact belongs.
+- **The cut audited by its author.** The person who wrote the split reads it back as confirmation, finds
+  the wording satisfying and the seams intended → a fresh auditor per three tasks, reading the PRD first and
+  the task file second, with the acceptance criterion of the class in hand.
+- **An auditor handed write access.** It re-cuts the plan to its own taste, every id the register, the DAG
+  and the trace matrix are indexed by moves, and the audit's findings and the rewrite become
+  indistinguishable → the auditor reports; the main agent amends.
+- **Findings adopted without reproduction.** "The acceptance criterion looks vague" arrives ten times a run,
+  half of them wrong, and each one silently widens a task → reproduce it, or reject it in writing with the
+  reason.
+- **`floor(n/3)` auditors for `n` tasks.** The remainder is a task nobody audited, and the report says the
+  audit is complete → `ceil`, and check the number of covered ids against the register before acting.
 
 ## Verification
 
@@ -385,6 +442,8 @@ remodelled.
 - `references/task-verification.md` — verification: modelling (A) and guarding (B).
 - `references/task-migration.md` — migration: moving production code, tests, docs.
 - `references/task-removal.md` — removal: delivering a non-existence.
+- `references/scope-audit.md` — the pre-handoff audit: grouping arithmetic, the read-only brief, the three
+  questions per task, the finding table, and what the main agent does with a finding.
 - `references/task-splitting.md` — normative splitting criteria: attributability, coupling exceptions,
   signals, coherence, probing the edges, ownership.
 - `references/testing-methodology.md` — the testing regime: flow as the unit, PBT, budgets, negative

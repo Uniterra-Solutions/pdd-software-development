@@ -1,86 +1,86 @@
-# 分件的實例與邊界
+# Worked examples and boundaries of task splitting
 
-`references/task-splitting.md` 給判準，本檔給實例、反例與放寬條件。判準的骨架是：一個可觀察目的、一條可指認入口或一個 flow、一組獨自擁有的檔案、一個 subagent 一次做完。**沒有數值上限**——大小是判斷，不是配額。
+`references/task-splitting.md` gives the criteria; this file gives examples, counterexamples and the conditions for relaxing them. The skeleton of the criteria is: one observable purpose, one identifiable entry point or one flow, one set of files owned alone, one subagent finishing it in one go. **No numeric ceiling** — size is a judgement, not a quota.
 
-## 1. 三句問話
+## 1. The three questions
 
-1. **哪一個入口？** 一個 `file:function`、一個 route、一個 CLI command、一個 migration 檔。列的出來就是可能的多件。
-2. **哪一個結果？** 一個呼叫者或讀者能觀察到的變化。
-3. **壞掉時能指名它嗎？** 若失敗會讓讀者懷疑隔壁，切的位置錯了。
+1. **Which entry point?** One `file:function`, one route, one CLI command, one migration file. If you can list several, it is probably several tasks.
+2. **Which result?** One change a caller or reader can observe.
+3. **When it breaks, can it be named?** If the failure makes the reader suspect the one next door, the cut is in the wrong place.
 
-任務檔的 header 必須答得出這三題（`Seam`／`Purpose`／`Files owned`）。答不出來的，還沒分完。
+The header of the task file must be able to answer these three questions (`Seam` / `Purpose` / `Files owned`). If it cannot, the split is not finished.
 
-## 2. 四個實例
+## 2. Four worked examples
 
-### 2.1 建設：「admin routes 需要 API key」
+### 2.1 Construction: "admin routes need an API key"
 
-一件做完會錯三件事：五條 route、兩個行為、一個共享 guard。分開：
+Done as one task it gets three things wrong: five routes, two behaviours, one shared guard. Split:
 
-- `T1` guard 本體——`auth/require-key.ts:requireKey`，先不接 route。它擁有拒絕分類與拒絕內容，只此一份。
-- `T2`..`T4` 每個 route family 一件——各自 import guard，各自讓自己的 surface 從真實 router 可達。
-- `T5` registry 登錄——讓 `T2`..`T4` 真的被走到，透過真實入口（`server.ts` 的請求）觀察，不用手組 app。
+- `T1` the guard itself — `auth/require-key.ts:requireKey`, not wired into any route yet. It owns the refusal classes and the refusal body, and there is exactly one copy.
+- `T2`..`T4` one per route family — each imports the guard, each makes its own surface reachable from the real router.
+- `T5` registry registration — makes `T2`..`T4` actually get walked, observed through the real entry point (a request in `server.ts`), without hand-assembling the app.
 
-拒絕內容的形狀只住在 `T1`；route 任務不重述它。五件任務重述一個述詞，就是五份會各自漂移的副本。
+The shape of the refusal body lives only in `T1`; the route tasks do not restate it. Five tasks restating one predicate are five copies that each drift on their own.
 
-### 2.2 建設：「settings 頁面改版」
+### 2.2 Construction: "settings page redesign"
 
-不要按 CSS 檔切：一個 stylesheet 一個 owner。按「錯的實作會壞在哪」切：
+Do not cut by CSS file: one stylesheet, one owner. Cut by "where a wrong implementation would break":
 
-- `T1` token sheet——後續每件都 import 它；數值從 PRD 的表轉錄。
-- `T2` 頁面上的表單元件。
-- `T3` 頁面佈局與間距。
+- `T1` the token sheet — every later task imports it; the values are transcribed from the table in the PRD.
+- `T2` the form components on the page.
+- `T3` page layout and spacing.
 
-### 2.3 重構：「把 settlement 計算搬到 core」
+### 2.3 Migration: "move the settlement calculation into core"
 
-- 先確認 oracle：既有套件涵蓋這個計算，或先派一件驗證建立模型。
-- `M1` 先搬介面（呼叫點改指向新模組，內部仍是舊實作），綠。
-- `M2` 再搬實作（新模組接手計算），綠，跑同一 oracle 逐位比較。
-- `R1` 收尾：舊模組與它的測試一起消失（`references/task-removal.md`）。
+- Settle the oracle first: an existing suite covers this calculation, or dispatch a verification task first to build the model.
+- `M1` move the interface first (call sites point at the new module, the inside is still the old implementation), green.
+- `M2` move the implementation next (the new module takes over the calculation), green, running the same oracle for a bit-for-bit comparison.
+- `R1` finish: the old module and its tests disappear together (`references/task-removal.md`).
 
-三個回滾點，每次只有一件事在變。若把 `M1` 與 `M2` 合成一件，失敗時分不出是介面還是算法。
+Three rollback points, with only one thing changing at a time. Merge `M1` and `M2` into one task and a failure cannot be told apart between interface and algorithm.
 
-### 2.4 刪減：「移除舊的 helper」
+### 2.4 Removal: "remove the old helper"
 
-- 前置：新 helper 已在場且被 flow 模型覆蓋。
-- 引用清零的證據先跑：`git grep -n "legacyHelper"`，結果貼進任務。
-- `R1` 改寫引用者 → 刪本體與其測試 → 跑 absence proof（grep 為零、編譯通過、連結檢查通過）。
+- Prerequisite: the new helper is already in place and covered by a flow model.
+- Run the evidence that references are at zero first: `git grep -n "legacyHelper"`, and paste the result into the task.
+- `R1` rewrite the referencing sites → delete the body and its tests → run the absence proof (grep returns zero, compilation passes, link check passes).
 
-若這件任務刪了生產碼卻把測試留在原地，套件會開始測一個不存在的東西，而它仍可能綠，因為它測的是 mock。
+If this task deletes production code but leaves the tests in place, the suite starts testing something that does not exist, and it may still be green, because what it tests is a mock.
 
-## 3. 不得切分的形狀
+## 3. Shapes that must not be cut
 
-- **一個規則切兩半。**「寫入新戳記後絕不寫回舊的」是兩次觀察上的同一條規則；切開得到兩個各自為真的半邊，而配對永遠沒被看過。
-- **只為編譯而存在的任務。** 檔案屬於需要它的那件。
-- **必須一起改的兩個檔。** schema 與由它生成的型別、元件與只被它使用的 stylesheet：一個 seam、兩個 owned 檔、一件任務。
-- **「為上一件寫檢查」的任務。** 把描述移離它描述的 flow，於是每個 seam 一個模型，而不是每個 flow 一個模型。
-- **按符號、按檔案、按層機械切。** 那是 diff 分割，不是分解；裡面沒有任何一件能單獨壞、並指名一個行為。
+- **One rule cut in two.** "never write back the old stamp after writing the new one" is the same rule across two observations; cut apart, you get two halves that are each true on their own, and the pair is never looked at.
+- **A task that exists only to compile.** The files belong to the task that needs them.
+- **Two files that must change together.** A schema and the types generated from it, a component and the stylesheet only it uses: one seam, two owned files, one task.
+- **A task that "writes checks for the previous one".** It moves the description away from the flow it describes, so there is one model per seam instead of one model per flow.
+- **Cutting mechanically by symbol, by file, by layer.** That is diff partitioning, not decomposition; none of the pieces in it can break on its own and name a behaviour.
 
-## 4. 碎片化的計數器
+## 4. Counters for fragmentation
 
-當節點數長了而寬度沒長時，逐條檢查：
+When the node count grows but the width does not, check each of these:
 
-- **是兄弟，不是鏈。** 由一件粗任務切出的兩件，之間沒有邊。若你需要一條邊，問問第二件是不是同一個行為從較晚的點讀。
-- **共享前置要有自己的單位。** fixture、guard、registry、migration baseline：一件任務，其餘依賴它，規則寫一次。
-- **驗證單位與建設單位分離是合法的。** 一個 flow 覆蓋的行為多到一個模型吃力，就讓另一件驗證任務擁有鄰近的 flow——它不增加生產 writer，且每個 flow 仍只有一個模型檔。
-- **寬度長了才算切對了。** 切完重算波次；若第二波的成員數沒變，這次切分只買到交接，原本的粗任務是對的。
+- **Siblings, not a chain.** Two tasks cut out of one coarse task have no edge between them. If you need an edge, ask whether the second one is the same behaviour read from a later point.
+- **A shared prerequisite needs its own unit.** fixture, guard, registry, migration baseline: one task, the rest depend on it, the rule is written once.
+- **Separating a verification unit from a construction unit is legitimate.** When a flow covers so much behaviour that one model struggles, let another verification task own an adjacent flow — it adds no production writer, and each flow still has only one model file.
+- **Only if the width grew was the cut right.** Recompute the waves after cutting; if the number of members in the second wave is unchanged, this split bought only a handover, and the original coarse task was right.
 
-## 5. 什麼時候放寬，什麼時候不放
+## 5. When to relax, and when not to
 
-**客觀約束是三條同時成立：**
+**An objective constraint is three things holding at once:**
 
-1. **可指認。** 你指得出那個東西，不是感覺：生成的 client 與它的 schema 一起 checked in；repo 的層級門檻拒絕較小切分需要的 import；編譯器把約束收進單一 translation unit。
-2. **不可再分。** 較小的形狀失敗的原因是產品或工具鏈，不是計畫的方便。若存在一種保得住同樣歸因的重切，重切勝。
-3. **仍可歸因。** 放寬之後，失敗仍由一個行為吸收。若較大的單位交付兩個可分別上線的結果，它不是一件。
+1. **Identifiable.** You can point at the thing, not feel it: the generated client and its schema are checked in together; the repo's layering threshold rejects the import a smaller cut needs; the compiler pulls the constraint into a single translation unit.
+2. **Not further divisible.** The reason the smaller shape fails is the product or the toolchain, not the plan's convenience. If a re-cut exists that preserves the same attributability, the re-cut wins.
+3. **Still attributable.** After relaxing, a failure is still absorbed by one behaviour. If the larger unit delivers two results that can ship separately, it is not one task.
 
-**合法的例子**（放在任務檔的耦合例外欄，寫明哪個約束、哪些檔案、哪個 oracle 一次覆蓋整體）：生成的 client 與 schema 必須同時落地；migration 必須先 backfill 再建索引，同一個檔、同一個順序。
+**Legitimate examples** (put in the task file's coupling exception field, stating which constraint, which files, which oracle covers the whole in one pass): a generated client and its schema must land at the same time; a migration must backfill before it creates the index, in the same file and the same order.
 
-**不合法的理由**：「切成兩件會多兩個任務」——任務數不是成本模型，交接才是；「反正一次 commit」——commit 不是工作單位；「模型不好放」——那是 flow 的邊界錯了，不是判準錯了；「diff 已經寫好」——寫好的程式不是分件的約束；「全部都碰到 router」——那 router 是一件共享前置，行為任務依賴它。
+**Illegitimate reasons**: "splitting into two adds two tasks" — task count is not the cost model, handovers are; "it's one commit anyway" — a commit is not a unit of work; "the model is hard to place" — that means the flow's boundary is wrong, not that the criteria are wrong; "the diff is already written" — written code is not a constraint on the split; "everything touches the router" — then the router is a shared prerequisite, and the behaviour tasks depend on it.
 
-## 6. 派遣前的逐件檢查
+## 6. Per-task check before dispatch
 
-- [ ] header 指明一件任務的 seam 或 flow；
-- [ ] 類別是四者之一，且沒有任務同時擁有生產檔與模型檔；
-- [ ] owned 集合是這件事的最小充分集合；更大的擁有以可指認的耦合交換；
-- [ ] 步驟有序，每一步只改變一件事，可獨立回滾；
-- [ ] 每個 owned 路徑按它行使的功能命名，不含任務 id（`tests/t3_router.spec.ts`、`T03-x`、`guard_t3`、`test_t3`、`task_3` 皆不可）；
-- [ ] 一件任務壞掉時，不會讓讀者懷疑它的兄弟。
+- [ ] the header names one task's seam or flow;
+- [ ] the class is one of the four, and no task owns both production files and model files;
+- [ ] the owned set is the minimal sufficient set for this thing; larger ownership is traded for identifiable coupling;
+- [ ] the steps are ordered, each step changes one thing and can be rolled back independently;
+- [ ] every owned path is named after the function it performs and contains no task id (`tests/t3_router.spec.ts`, `T03-x`, `guard_t3`, `test_t3`, `task_3` are all disallowed);
+- [ ] when a task breaks, it does not make the reader suspect its siblings.

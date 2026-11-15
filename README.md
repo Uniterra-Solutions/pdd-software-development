@@ -25,8 +25,8 @@ same-named skill on disk — call the qualified name:
 | Qualified name | What it does |
 | --- | --- |
 | `pdd:plan` | Write the PRD: business model, one behaviour section per flow, `REQ-F` / `REQ-A` |
-| `pdd:decompose` | Turn the PRD into four classes of task (construction / verification / migration / removal), one DAG, two gates |
-| `pdd:implement` | Dispatch the DAG layer by layer, accept each task by its class, stop on contradiction |
+| `pdd:decompose` | Turn the PRD into four classes of task (construction / verification / migration / removal), one DAG, two gates, then audit the cut's scope and acceptance criteria with one read-only auditor per three tasks |
+| `pdd:implement` | Dispatch the DAG batch by batch, accept each task by its class, merge the batch back into the recorded working branch, close its worktrees, stop on contradiction |
 | `pdd:review` | Read PRD + tasks, write a review DAG, dispatch two reviewer types, synthesise findings |
 | `pdd:explain` | Explain a plan to a non-engineer without inventing claims |
 
@@ -66,11 +66,11 @@ architecture check), the two gates, and the costs the process accepts.
 ```
 plugin.yaml            manifest (name: pdd)
 __init__.py            register(ctx) -> ctx.register_skill() per skill directory
-skills/pdd:plan/       SKILL.md + assets/
-skills/pdd:decompose/  SKILL.md + assets/ + references/
-skills/pdd:implement/  SKILL.md + references/ + scripts/mutate_check.py
-skills/pdd:review/     SKILL.md + references/
-skills/pdd:explain/    SKILL.md + assets/ + references/
+skills/plan/           SKILL.md + assets/
+skills/decompose/      SKILL.md + assets/ + references/
+skills/implement/      SKILL.md + references/ + scripts/mutate_check.py
+skills/review/         SKILL.md + references/
+skills/explain/        SKILL.md + assets/ + references/
 ```
 
 ## Versioning

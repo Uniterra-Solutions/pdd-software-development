@@ -1,24 +1,29 @@
-# 分解陷阱目錄
+# Decomposition pitfalls
 
-每一條都是真實的失敗模式，附機制與修法。派遣前讀一遍，reviewer 不同意分解時再讀一遍。
+Every row is a real failure mode, with its mechanism and its fix. Read this file before dispatch, and again
+when a reviewer disagrees with the cut.
 
-| 症狀 | 成因 | 修法 |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| purpose 寫成內部結構（「新增 XxxService」） | 建設任務的方向寫反了 | purpose 寫成呼叫者能觀察到的結果 |
-| 一件任務同時搬結構又改行為 | 兩類混用，驗收物件衝突 | 拆成重構與建設，先讓重構綠，再改行為 |
-| 重構沒有 oracle | 想省一件驗證任務 | 先派驗證 B／C 建立行為基線與架構檢查 |
-| 刪減沒有替代品 | 把「還沒做完」誤認為「可以刪了」 | 先建設替代品，並讓它被驗證覆蓋 |
-| 刪了生產碼但測試仍在 | 測試測的是 mock，所以仍然綠 | 刪減任務擁有隨它一起死的測試 |
-| 同一個 flow 有兩個模型檔 | 兩件驗證任務並行，互相覆蓋 | 一個 flow 一個模型；第二件改成共享前置 |
-| 驗證 agent 順手改了生產檔 | 類別邊界不明 | 只報 trace、seed、最短序列，由 main agent 開任務 |
-| 重構時放寬了判定它的檢查 | 自我豁免 | 修改約束、基線或 pin 前必須提 dated amendment |
-| 架構需求被寫成行為測試 | 把護欄當成驗收 | 規則、範圍、違反樣貌、檢查四件齊備 |
-| 效能需求沒有基線 | 事後才說「快了」 | 同儀器基線、目標預算、造成改善的結構改動 |
-| 任務按檔案或符號切 | diff 分割偽裝成分解 | 按 seam 與 flow 切；每個 owned 檔都為一個行為服務 |
-| 任務 id 進了路徑、測試標題或 filter | id 會變，名稱之後就開始說謊 | 按它行使的功能命名 |
-| 實作者卡在兩份互相矛盾的指示之間 | 它需要的檔案不在 `Owned files` 內 | 加進 owned，或把該檔給較早的任務 |
-| 計畫宣稱一個沒人建的表面 | PRD 的表面清單長了，任務集沒長 | 派遣前把每個表面對所有建設 purpose 掃一遍 |
-| 每一步都說不出「不動什麼」 | 範圍沒界定 | 寫 `Untouched`，並在報告核對 |
-| 切片太粗，任一步都無法獨立回綠 | 一次改兩件事 | 重切到每一步都能單獨綠燈 |
-| 兩件任務同時改一個註冊表或 barrel | 缺一件共享前置 | 給那個檔自己的單位，其他依賴它 |
-| 計畫有環，或某個驗證節點繞過 gate | 時序靠記憶而不是靠圖 | gate 畫進 DAG；波次由深度重算 |
+| The purpose is written as internal structure ("add XxxService") | The direction of a construction task is inverted | Write the purpose as the outcome a caller can observe |
+| One task both moves structure and changes behaviour | Two classes mixed; the acceptance objects conflict | Split into migration and construction; let the migration go green first, then change behaviour |
+| A migration with no oracle | Saving one verification task | Dispatch verification B/C first to establish the behavioural baseline and the architecture check |
+| A removal with no replacement | Reading "not finished yet" as "ready to delete" | Build the replacement first, and have it covered by verification |
+| Production code deleted but its tests remain | The tests assert against a mock, so they stay green | The removal task owns the tests that die with the code it deletes |
+| One flow with two model files | Two verification tasks in parallel overwrite each other | One model per flow; make the second a shared prerequisite |
+| A verification agent edits production files along the way | Class boundary unclear | Report the trace, the seed and the minimal sequence; the main agent opens the task |
+| A migration loosens the check that judges it | Self-exemption | Editing a constraint, a baseline or a pin requires a dated amendment first |
+| An architectural requirement written as a behavioural test | Confusing a guard with an acceptance criterion | Rule, scope, violation shape and check — all four, or it is not a C task |
+| A performance requirement with no baseline | "It got faster" said afterwards | Same-instrument baseline, target budget, the structural change that produced the gain |
+| Tasks cut by file or by symbol | A diff split disguised as a decomposition | Cut by seam and flow; every owned file serves one behaviour |
+| The task id enters a path, a test title or a filter | Ids change, and the name starts lying | Name it after the function it performs |
+| The implementer is stuck between two contradictory instructions | A file it needs is not in `Owned files` | Add it to owned, or give that file to an earlier task |
+| The plan claims a surface nobody builds | The PRD's surface list grew and the task set did not | Before dispatch, sweep every surface against every construction purpose |
+| No step can say what it leaves untouched | Scope not delimited | Write `Untouched`, and check it in the report |
+| The slice is too coarse for any step to go green alone | Two things changed at once | Re-cut until every step can go green on its own |
+| Two tasks edit one registry or barrel | Missing shared prerequisite | Give that file its own unit; the others depend on it |
+| The plan has a cycle, or a verification node bypasses a gate | Ordering kept in memory instead of in the graph | Draw the gate into the DAG; derive the waves from depth |
+| The cut is audited by its author | The author reads the split back as confirmation — same understanding, same blind spot | One fresh auditor per three tasks, reading the PRD first and the task file second, with the class's acceptance criterion in hand |
+| The auditor is handed write access | It re-cuts the plan to its own taste, and every id that the register, DAG and trace matrix are indexed by moves with it | The auditor reports; the main agent amends |
+| Audit findings adopted without reproduction | "The criterion looks vague" arrives ten times a run, and half of them are wrong | Reproduce each one, or reject it in writing with the reason |
+| `floor(n/3)` auditors for `n` tasks | The remainder is a task nobody read, while the report says the audit is complete | `ceil`, and check the covered ids against the register |

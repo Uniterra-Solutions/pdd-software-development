@@ -1,80 +1,80 @@
-# 調用審查 subagent 的規範
+# The specification for invoking review subagents
 
-main agent 用這份文件派遣審查者。它只管「怎麼派」，審查內容的判準在兩份類型規範裡。
+The main agent uses this document to dispatch reviewers. It governs only "how to dispatch"; the criteria for the review content are in the two type specifications.
 
-## 1. 必附的兩個路徑
+## 1. The two paths that must be included
 
-每一份 brief 都要貼兩個路徑，缺一不可：
-
-```
-任務檔目錄：  <plan-dir>/tasks/              ← 本 unit 的任務檔在裡面，只讀
-你的規範：    <pdd:review>/references/reviewer-<type>.md   ← type = test-construction | code-reading
-基礎規範：    <pdd:implement>/references/subagent-charter.md ← 編譯範圍、命名、報告
-```
-
-**為什麼是路徑而不是內文。** 三個理由：
-
-1. 貼內文等於在派遣時重寫一次契約，兩份副本一旦漂移，子代理跟隨它最後讀到的那份；
-2. 規範檔會演化，貼死的副本不會跟著改；
-3. brief 小一個數量級，省下的上下文留給讀碼與構造反例。
-
-**路徑要驗。** 派遣前對每個路徑 `test -f`；寫錯的路徑不會回報「路徑錯」，子代理只會說「任務不明確」。
-
-## 2. brief 的最小內容
+Every brief must paste two paths, neither may be missing:
 
 ```
-你的身分：   <測試構造型 | 代碼審查型> 審查者   ← 由 scope 內任務的 Class 決定，不得自行更改
-你的 unit：   <unit id>
-你的 scope：  <任務 id 清單，最多 3 件>
-任務檔目錄：  <plan-dir>/tasks/            ← 只讀
-你的規範：    references/reviewer-<type>.md ← 照它執行
-基礎規範：    pdd:implement/references/subagent-charter.md
-標準：        <plan-dir>/PRD.md、<plan-dir>/TASKS.md  ← 只讀
-要回答的問題：<3–6 條，逐條可判定>
-輸出：        <finding 格式；測試構造型另附 patch 與命令>
-禁止：        改生產碼／改 PRD、TASKS、任務檔／新增依賴／跑全套／建立審查專用目錄
+Task file directory:  <plan-dir>/tasks/              <- this unit's task files are inside, read-only
+Your spec:            <pdd:review>/references/reviewer-<type>.md   <- type = test-construction | code-reading
+Base spec:            <pdd:implement>/references/subagent-charter.md <- compilation scope, naming, reporting
 ```
 
-**身分是查表得來的，不是挑的。** 派遣前對照這張表，`Class` 不在表裡就是計劃缺陷（停下回報，不要選一個順手的類型）：
+**Why paths rather than inline text.** Three reasons:
 
-| 任務 `Class` | 審查者 | 規範檔 |
+1. pasting inline text equals rewriting the contract at dispatch time; once the two copies drift, the subagent follows whichever one it read last;
+2. specification files evolve, and a pasted-in dead copy does not change with them;
+3. the brief is an order of magnitude smaller, and the saved context goes to reading code and constructing counterexamples.
+
+**Paths must be validated.** Run `test -f` on every path before dispatching; a wrong path does not report "wrong path", the subagent merely says "the task is unclear".
+
+## 2. The minimal content of a brief
+
+```
+Your identity:   <test-construction | code-reading> reviewer   <- determined by the Class of the tasks in scope, may not be changed by yourself
+Your unit:       <unit id>
+Your scope:      <task id list, at most 3>
+Task file directory:  <plan-dir>/tasks/            <- read-only
+Your spec:       references/reviewer-<type>.md <- follow it
+Base spec:       pdd:implement/references/subagent-charter.md
+Standard:        <plan-dir>/PRD.md, <plan-dir>/TASKS.md  <- read-only
+Questions to answer: <3-6, each decidable>
+Output:          <finding format; test-construction type additionally attaches patch and command>
+Forbidden:       change production code / change PRD, TASKS, task files / add dependencies / run the full suite / create review-only directories
+```
+
+**Identity comes from a table lookup, not from choosing.** Compare against this table before dispatching; if the `Class` is not in the table it is a plan defect (stop and report, do not pick a convenient type):
+
+| Task `Class` | Reviewer | Spec file |
 | --- | --- | --- |
-| **行為組** | | |
-| `construction` | 測試構造 | `reviewer-test-construction.md` |
-| `verification` | 測試構造 | `reviewer-test-construction.md` |
-| **結構組** | | |
-| `migration` | 代碼審查 | `reviewer-code-reading.md` |
-| `removal` | 代碼審查 | `reviewer-code-reading.md` |
+| **Behaviour group** | | |
+| `construction` | Test construction | `reviewer-test-construction.md` |
+| `verification` | Test construction | `reviewer-test-construction.md` |
+| **Structure group** | | |
+| `migration` | Code review | `reviewer-code-reading.md` |
+| `removal` | Code review | `reviewer-code-reading.md` |
 
-**開場自檢（寫進 brief）。** 審查者讀完任務檔後，要確認 brief 給的類型與那些任務的 `Class` 一致；不一致就停下回報，不要「照做」。這是最後一道防線，用來擋住「不確定就派代碼審查」的退化。
+**Opening self-check (write it into the brief).** After reading the task files, the reviewer must confirm that the type given in the brief matches the `Class` of those tasks; if they do not match, stop and report, do not "do as told". This is the last line of defence, used to block the degradation of "when unsure, dispatch code review".
 
-**要回答的問題**寫成可判定的問句，不要寫成「審查這個模組」。例：「`REQ-F-deposit-2` 的拒絕分類在 `frozen` 狀態下是否成立？」「`REQ-A-1` 的依賴規則有沒有對應檢查，它會不會咬？」
+**Questions to answer** are written as decidable questions, not as "review this module". Example: "Does the rejection classification of `REQ-F-deposit-2` hold in the `frozen` state?" "Does the dependency rule of `REQ-A-1` have a corresponding check, and does it bite?"
 
-**不給假設。** brief 不寫「我懷疑 X 有 bug」，也不轉述 main agent 的讀法。審查者的價值來自獨立重讀原文；一旦被錨定，它只會確認你的猜測。
+**Give no hypotheses.** The brief does not write "I suspect X has a bug", nor relay the main agent's reading. The reviewer's value comes from independently re-reading the source text; once anchored, it will only confirm your guess.
 
-## 3. 派遣的形狀
+## 3. The shape of the dispatch
 
-- **一個 unit 一個 subagent，且 unit 內的 `Class` 同屬一組**（行為組＝construction／verification；結構組＝migration／removal）。 混了兩類任務，就等於一份 brief 兩種驗收物件；拆 unit，不要讓審查者兩邊都審不深。
-- **scope 上限 3 件任務。** 不是配額，是上限：findings 要能歸因到任務，且 3 件的 owned 集合還放得進 context。超出就拆 unit，不要壓縮 brief。
-- **同檔序列化。** 兩個 unit 的 scope 只要碰到同一個測試檔或同一個模組，就依 DAG 序列化——一個會寫、一個只讀，並行會讓讀的一方看到半成品。
-- **整批派遣，然後結束這一輪。** 不要 poll；完成通知按批次處理。
-- **平行上限不足時分波。** 波序仍守 DAG 的偏序；不要為了塞進一輪而放寬 scope 上限。
+- **One subagent per unit, and the `Class` within a unit belongs to the same group** (behaviour group = construction / verification; structure group = migration / removal). Mixing two task classes means one brief with two acceptance objects; split the unit, do not let the reviewer review both sides shallowly.
+- **Scope cap of 3 tasks.** Not a quota, a cap: findings must be attributable to tasks, and the owned set of 3 tasks still fits in context. Beyond that, split the unit, do not compress the brief.
+- **Serialize on the same file.** As long as the scopes of two units touch the same test file or the same module, serialize them along the DAG - one writes, one only reads, and running in parallel makes the reading side see a half-finished product.
+- **Dispatch the whole batch, then end this round.** Do not poll; completion notifications are handled by batch.
+- **Split into waves when the parallelism cap is insufficient.** Wave order still obeys the partial order of the DAG; do not relax the scope cap in order to fit into one round.
 
-## 4. 回收與轉交
+## 4. Collection and handover
 
-- 每個子代理回報：findings（依 `references/finding-schema.md`）、它實際執行的命令與原始輸出、它改過的測試檔清單、它未能審的範圍與原因。
-- **main agent 自己覆核**，不是轉發：測試類 finding 要自己重跑並確認紅腿／綠腿；代碼審查類 finding 要指到行與條文。
-- 子代理報告裡的「我認為這不對」不是 finding；沒有輸入、命令或條文的判斷退回，不進報告。
+- Each subagent reports: findings (per `references/finding-schema.md`), the commands it actually ran with their raw output, the list of test files it changed, and the scope it could not review with the reason.
+- **The main agent verifies itself**, not forwards: for test-type findings it must re-run and confirm the red leg / green leg itself; for code-review-type findings it must point to line and clause.
+- "I think this is wrong" in a subagent report is not a finding; a judgement without input, command or clause is returned and does not enter the report.
 
-## 5. 失敗樣貌
+## 5. Failure modes
 
-| 樣貌 | 代價 |
+| Shape | Cost |
 | --- | --- |
-| 只貼任務檔路徑，沒貼類型規範 | 審查者用自己的一套判準，兩份報告無法比較 |
-| 貼了內文而不是路徑 | 契約兩份，驗收對著一份、執行對著另一份 |
-| brief 裡寫了假設 | 審查變成確認偏誤，真正的缺陷沒人找 |
-| 一個 unit 4 件以上任務 | findings 無法歸因，context 被切碎 |
-| 不確定就派代碼審查 | 行為類任務失去反例，只剩「看起來合理」 |
-| unit 內混了 construction 與 migration | 一套判準涵蓋兩種驗收物件，兩邊都淺 |
-| 同檔兩個 unit 並行 | 一邊寫測試一邊被讀，讀到半成品 |
-| 把子代理的判斷直接寫進報告 | 沒有命令與條文的 finding 是意見，不是證據 |
+| Pasting only the task file path, not the type spec | The reviewer uses its own set of criteria and the two reports cannot be compared |
+| Pasting inline text rather than the path | Two contracts: acceptance against one, execution against the other |
+| A hypothesis written into the brief | The review becomes confirmation bias, and nobody looks for the real defect |
+| 4 or more tasks in one unit | Findings cannot be attributed, and context is shredded |
+| Dispatching code review when unsure | Behaviour-type tasks lose their counterexamples and are left with "looks reasonable" |
+| Mixing construction and migration within a unit | One set of criteria covers two acceptance objects, and both sides are shallow |
+| Two units on the same file in parallel | A test is being written while it is being read, and a half-finished product is read |
+| Writing the subagent's judgement straight into the report | A finding without command and clause is opinion, not evidence |

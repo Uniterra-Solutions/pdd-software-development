@@ -1,53 +1,53 @@
-# 驗證型任務（verification）
+# Verification tasks (verification)
 
-**定義**：把已存在的東西變成可判定的——三種形狀，驗收物件不同。
+**Definition**: turn something already existing into something decidable — three shapes, with different acceptance objects.
 
-| 形狀 | 用於 | 交付物 |
+| Shape | Used for | Deliverable |
 | --- | --- | --- |
-| **A 建模** | `REQ-F`：建設落地後，flow 有了新命令 | 模型、property、pin |
-| **B 行為護欄** | 重構或刪減要動一個已被模型／既有套件覆蓋的 flow | 基線記錄、改動後逐位比較 |
-| **C 架構檢查** | `REQ-A`：架構需求要被判定 | 可執行的約束檢查，改動前全綠、改動後仍須全綠 |
+| **A modelling** | `REQ-F`: after construction lands, the flow has new commands | Model, property, pin |
+| **B behavioural guard** | A migration or removal is about to touch a flow already covered by a model / existing suite | Baseline record, bit-for-bit comparison after the change |
+| **C check / architecture check** | `REQ-A`: an architecture requirement is to be decided | An executable constraint check, all green before the change, and still all green after |
 
-C 形是「程式碼遵守架構」這件事的驗收機制。它檢查的是結構——依賴方向、模組邊界、對外表面、循環、複雜度、效能預算——不是行為，所以它不是測試，也不該被寫成測試。
+The C shape is the acceptance mechanism for "code obeys the architecture". What it checks is structure — dependency direction, module boundaries, public surface, cycles, complexity, performance budget — not behaviour, so it is not a test and should not be written as a test.
 
-## 何時用
+## When to use
 
-- `REQ-F` 的建設令某個 flow 出現新命令 → A。
-- 有重構或刪減要動一個已被覆蓋的 flow → B，且基線必須在改動**之前**完成。
-- PRD 有 `REQ-A`（含效能需求） → C。C 通常要先於它所判定的重構落地，否則重構沒有終止條件。
-- 方法本身（flow、property、預算、負向控制）在 `testing-methodology.md`；本檔只講任務怎麼寫。
+- Construction of a `REQ-F` makes a new command appear in some flow → A.
+- A migration or removal is about to touch an already covered flow → B, and the baseline must be completed **before** the change.
+- The PRD has `REQ-A` (including performance requirements) → C. C usually has to land before the migration it decides, otherwise the migration has no termination condition.
+- The method itself (flow, property, budget, negative control) is in `testing-methodology.md`; this file only covers how the task is written.
 
-## 不屬於這一類
+## Not this class
 
-- 改生產碼 → 建設或重構。
-- 刪生產碼 → 刪減。
-- 為單一 seam 造一個小模型 → slice 不是單位；一個 flow 一件任務。
+- Changing production code → construction or migration.
+- Deleting production code → removal.
+- Making a small model for a single seam → a slice is not the unit; one flow, one task.
 
-## 檔案內要寫什麼
+## What to write in the file
 
-1. **Flow**（A／B）或 **Rule**（C）— A／B 寫命令集、狀態、拒絕分類、不變量；C 寫它判定的那條 `REQ-A` 原文。
-2. **Covers** — 它覆蓋哪些任務 id（生產任務的 seam，或它所判定的重構任務）。
-3. **Files owned** — A：模型檔、harness 入口、pin 檔。B：基線 artifact。C：約束腳本與其設定。**三者都不得含生產檔。**
-4. **Steps** — A：讀已落地的 seam → 轉錄決策表 → 為新命令加 property（每條附預算）→ 跑 → shrink → pin。B：跑基線並記 seed 與輸出摘要 →（改動由別的任務做）→ 同一命令重跑 → 差異即缺陷。C：把規則寫成 pass/fail → 在改動前跑到全綠 →（改動由重構任務做）→ 重跑仍須全綠。
-5. **Budget** — A／B：樣本數、seed、shrink 界、每 flow 執行時間上限，寫在 harness 檔。C：門檻值（例如依賴零違反、循環零、模組公開面等於宣告集合、p95 進入預算），寫在約束腳本。
+1. **Flow** (A/B) or **Rule** (C) — A/B write the command set, states, refusal classes, invariants; C writes the original text of the `REQ-A` it decides.
+2. **Covers** — which task ids it covers (the seams of production tasks, or the migration task it decides).
+3. **Files owned** — A: model file, harness entry point, pin file. B: baseline artifact. C: constraint script and its config. **None of the three may contain production files.**
+4. **Steps** — A: read the landed seam → transcribe the decision table → add properties for the new commands (each with a budget) → run → shrink → pin. B: run the baseline and record the seed and output digest → (the change is done by another task) → rerun the same command → the difference is the defect. C: write the rule as pass/fail → run it to all green before the change → (the change is done by the migration task) → rerun, still must be all green.
+5. **Budget** — A/B: sample count, seed, shrink bound, execution-time ceiling per flow, written in the harness file. C: threshold values (for example zero dependency violations, zero cycles, module public surface equal to the declared set, p95 within budget), written in the constraint script.
 
-## 寫作規則
+## Writing rules
 
-- 一個 flow 一件 A／B；一條 `REQ-A` 一件 C（同一範圍的三條相似規則可合一件，但需在任務檔寫明）。
-- 一個 flow 只有一個模型檔與一個 harness 入口；第二件驗證任務編輯同一模型即為衝突。
-- A 必須在它所覆蓋的建設任務被接受之後開始。B／C 必須在它所保護的改動**之前**完成並凍結（只讀）。
-- 任何任務想改一個 pin、一條基線或一條約束，必須先提 dated amendment。重構任務修改判定它自己的檢查，就是自我豁免。
-- 發現生產缺陷時不修：報 trace、seed、最短序列，由 main agent 開建設或重構任務。
+- One flow, one A/B; one `REQ-A`, one C (three similar rules in the same scope may be merged into one, but this must be stated in the task file).
+- One flow has only one model file and one harness entry point; a second verification task editing the same model is a conflict.
+- A must start after the construction task it covers has been accepted. B/C must be completed and frozen (read-only) **before** the change they protect.
+- Any task that wants to change a pin, a baseline or a constraint must first raise a dated amendment. A migration task modifying the check that decides it is self-exemption.
+- Do not fix production defects when found: report the trace, seed and shortest sequence, and let the main agent open a construction or migration task.
 
-## 完成時的報告
+## Report on completion
 
-- A：走到哪些分支、預算用掉多少、抓到什麼（trace、seed、最短序列）、未覆蓋的角落與理由。
-- B：基線與重跑的逐位比較結果。
-- C：檢查在改動前後的 pass/fail、違反清單（若有）、門檻值與實測值。
+- A: which branches were reached, how much of the budget was used, what was caught (trace, seed, shortest sequence), corners not covered and why.
+- B: the bit-for-bit comparison of the baseline and the rerun.
+- C: the pass/fail of the check before and after the change, the violation list (if any), threshold values and measured values.
 
-## 失敗樣貌
+## Failure shapes
 
-- **在建設之前建模** → 模型描述的是想像中的實作，property 釘住設計幻想。
-- **重跑時先改 pin 再比對** → 等價性證明消失，剩下的只是一組新測試。
-- **架構檢查用測試寫**（跑幾個代表性案例然後說「結構沒問題」）→ 它判定的是行為抽樣，不是結構；違反會在沒被抽到的路徑上發生。
-- **檢查門檻事後放寬** → 重構自動合規，等於沒有驗收。
+- **Modelling before construction** → the model describes an imagined implementation, and the property pins a design fantasy.
+- **Changing the pin before comparing on a rerun** → the equivalence proof disappears, and what is left is just a new set of tests.
+- **Writing the architecture check with tests** (running a few representative cases and then saying "the structure is fine") → what it decides is a sample of behaviour, not structure; violations happen on paths that were not sampled.
+- **Loosening the check threshold after the fact** → the migration is automatically compliant, which amounts to no acceptance.

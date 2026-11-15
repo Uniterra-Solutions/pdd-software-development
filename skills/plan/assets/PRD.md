@@ -15,118 +15,118 @@ layouts, endpoint tables, response shapes, timeouts and test designs are discove
 The one exception is the target architecture in §5: that structure does not exist yet, so it cannot be read
 out of anything, and it is the deliverable of an architectural requirement.
 
-Requirements come in two kinds. **功能需求 `REQ-F-…`** are accepted by modelling their behaviour.
-**架構需求 `REQ-A-…`** are accepted by the code obeying the architecture, checked executably — not by a
-test that happens to pass.
+Requirements come in two kinds. **Functional requirements `REQ-F-…`** are accepted by modelling their
+behaviour. **Architectural requirements `REQ-A-…`** are accepted by the code obeying the architecture,
+checked executably — not by a test that happens to pass.
 
-## 1. 業務與問題
+## 1. Business and problem
 
 <Who does what today, what breaks for them, and which outcome makes this change worth doing. One or two
 paragraphs. No history, no exploration.>
 
-## 2. 角色與物件
+## 2. Actors and objects
 
-| 角色 | 它是誰 | 可以做什麼 | 會被拒什麼 |
+| Actor | Who it is | What it may do | What it is refused |
 | --- | --- | --- | --- |
 | <actor> | <the person or system> | <allowed operations> | <the refusals that apply to it> |
 
-- **物件與數量**: <noun — unit, bounds, whether it is reversible>
+- **Objects and quantities**: <noun — unit, bounds, whether it is reversible>
 
-## 3. 業務規則
+## 3. Business rules
 
-| 操作 | 前置條件 | 結果 | 之後必須成立 |
+| Operation | Precondition | Result | Must hold afterwards |
 | --- | --- | --- | --- |
 | <operation> | <who may invoke it, in which state> | `apply` / `refuse:<class>` | <postcondition> |
 
-- **狀態與轉移**: <state — legal moves — moves that must never happen>
-- **不變量**: <the law that holds in every state, with the range it quantifies over>
-- **刻意不編碼**: <rule left out — the reason>
+- **States and transitions**: <state — legal moves — moves that must never happen>
+- **Invariants**: <the law that holds in every state, with the range it quantifies over>
+- **Deliberately not encoded**: <rule left out — the reason>
 
-## 4. 行為
+## 4. Behaviour
 
 One section per flow. A flow is what a person does from trigger to outcome; it is also the unit the later
 phases model and verify against. Do not organise this by endpoint, file or layer.
 
 ### F1 <flow, in the operators' words>
 
-- **誰、何時觸發**: <actor and the moment>
-- **正常路徑**: <trigger → each step → outcome, in business terms>
-- **拒絕路徑**: <who is refused, under which condition, which class, what they see, what they can do next>
-- **邊界行為**: <only the boundaries that change the business outcome>
-- **絕不可發生**: <the outcomes that are unacceptable rather than inconvenient>
-- **在何處可見**: <the screen, report or statement where a business person sees it holding>
+- **Who, and when it triggers**: <actor and the moment>
+- **Happy path**: <trigger → each step → outcome, in business terms>
+- **Refusal path**: <who is refused, under which condition, which class, what they see, what they can do next>
+- **Boundary behaviour**: <only the boundaries that change the business outcome>
+- **Must never happen**: <the outcomes that are unacceptable rather than inconvenient>
+- **Where it is visible**: <the screen, report or statement where a business person sees it holding>
 
-## 5. 架構（只有架構需求時才需要）
+## 5. Architecture (only needed when there is an architectural requirement)
 
 The target structure and the rules the code must obey afterwards. This section describes structure on
 purpose: for an architectural requirement the structure is the deliverable, and nothing in the current tree
 can supply it.
 
-- **模組邊界與職責**: <module — what it owns — what it must not reach into>
-- **依賴方向**: <A may depend on B; A must not depend on C>
-- **對外表面**: <the symbols other parts may use; everything else is internal>
-- **分層／分區與循環**: <layers, allowed edges, cycles forbidden>
-- **效能（如涉及）**: <what is measured, with which instrument; current baseline; target budget; which
+- **Module boundaries and responsibilities**: <module — what it owns — what it must not reach into>
+- **Dependency direction**: <A may depend on B; A must not depend on C>
+- **Public surface**: <the symbols other parts may use; everything else is internal>
+- **Layers / partitions and cycles**: <layers, allowed edges, cycles forbidden>
+- **Performance (if involved)**: <what is measured, with which instrument; current baseline; target budget; which
   structural change produces the difference>
-- **這次不動的結構**: <structure deliberately left alone, with the reason>
+- **Structure left alone this time**: <structure deliberately left alone, with the reason>
 
-## 6. 需求
+## 6. Requirements
 
-### 6.1 功能需求
+### 6.1 Functional requirements
 
 One claim per requirement, three lines each. The prefix names the flow it belongs to.
 
 #### REQ-F-<flow>-1 <the behaviour in one falsifiable sentence>
 
-- **由規則**: <the §3 row or §4 state transition this comes from>
-- **失敗樣貌**: <who discovers what is wrong, and when, if this does not hold>
+- **From rule**: <the §3 row or §4 state transition this comes from>
+- **Failure shape**: <who discovers what is wrong, and when, if this does not hold>
 
 #### REQ-F-<flow>-2 <…>
 
-- **由規則**: …
-- **失敗樣貌**: …
+- **From rule**: …
+- **Failure shape**: …
 
-### 6.2 架構需求
+### 6.2 Architectural requirements
 
-`REQ-A` 是「程式碼遵守架構」這一類。驗收不是測試，是 §5 規則的可執行檢查。
+`REQ-A` is the class "the code obeys the architecture". Acceptance is not a test; it is the executable check of the §5 rule.
 
 #### REQ-A-1 <the structural rule in one falsifiable sentence>
 
-- **範圍**: <which modules, packages or symbols the rule quantifies over>
-- **違反樣貌**: <what a violation looks like in the tree, concretely>
-- **如何檢查**: <the executable check that returns pass or fail; naming the tool is allowed here>
+- **Scope**: <which modules, packages or symbols the rule quantifies over>
+- **Violation shape**: <what a violation looks like in the tree, concretely>
+- **How it is checked**: <the executable check that returns pass or fail; naming the tool is allowed here>
 
 #### REQ-A-2 <…>
 
-- **範圍**: …
-- **違反樣貌**: …
-- **如何檢查**: …
+- **Scope**: …
+- **Violation shape**: …
+- **How it is checked**: …
 
-## 7. 決策（記錄；後續變更以新決策取代）
+## 7. Decisions (recorded; later changes are superseded by a new decision)
 
 Only decisions the code cannot recover: external promises, regulatory constraints, compatibility burdens,
 cost ceilings, time windows, and the architecture chosen over its rival.
 
 - **D1 <topic>**: <the chosen value>. Rejected: <alternative> — <why, one clause>.
 
-## 8. 對外介面
+## 8. External interface
 
-| 表面 | 誰用 | 看到什麼 | 出錯時看到什麼 |
+| Surface | Who uses it | What they see | What they see on error |
 | --- | --- | --- | --- |
 | <screen / CLI command / report / statement / third-party API> | <actor> | <what it shows> | <what an error looks like to them> |
 
 Route strings, flag names, payload shapes and schema keys are confirmed by `pdd:decompose` against the tree.
 
-## 9. 非目標
+## 9. Non-goals
 
 - **N1** <adjacent thing this change deliberately leaves alone, with the reason>
 
-## 10. 未定與風險
+## 10. Open questions and risks
 
-- **未定**: <question — the observation or command that closes it — the requirement it affects>
-- **風險**: <risk — impact — mitigation>
+- **Open**: <question — the observation or command that closes it — the requirement it affects>
+- **Risk**: <risk — impact — mitigation>
 
-## 11. 交接
+## 11. Handover
 
 - Defaulted decisions: <list with `defaulted — vetoable until work starts`, or `none`>
 - Chosen next skill: <pdd:decompose | pdd:implement>

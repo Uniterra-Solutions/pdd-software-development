@@ -1,46 +1,46 @@
-# 刪減型任務（removal）
+# Removal tasks (removal)
 
-**定義**：讓某個東西從 repo 中消失——生產碼、測試、文檔、設定、flag、依賴。交付物是一個**不存在**。
+**Definition**: make something disappear from the repo — production code, tests, documentation, config, flag, dependency. The deliverable is an **absence**.
 
-它服務兩種需求：功能退役（`REQ-F` 的下線）與架構收斂（`REQ-A` 移除一個不該存在的模組或依賴）。後者的 acceptance 仍是架構檢查：那個節點必須從依賴圖消失。
+It serves two kinds of requirement: feature retirement (taking a `REQ-F` offline) and architecture convergence (`REQ-A` removing a module or dependency that should not exist). For the latter the acceptance is still the architecture check: that node must disappear from the dependency graph.
 
-## 何時用
+## When to use
 
-- 功能下線、路徑廢棄、flag 到期、死碼清理、過時測試、過期文檔章節、不再使用的依賴。
-- 被替換的舊實作在替代品上線後必須消失。
+- Feature retirement, path abandonment, flag expiry, dead-code cleanup, stale tests, expired documentation sections, dependencies no longer used.
+- The replaced old implementation must disappear after the replacement is online.
 
-## 前置
+## Prerequisites
 
-1. **替代品在場** — 新路徑已上線且被驗證覆蓋。沒有替代品就不是「可以刪了」，是「還沒做完」。
-2. **引用清零的證據** — 派遣前先跑一次引用查詢（grep、編譯器、依賴圖），把結果寫進任務。不靠「我記得沒人用」。
-3. **外部消費者判定** — 若 repo 外有人使用，這不是刪減而是 deprecation：需要窗口、通告、相容期與到期條件。
+1. **Replacement present** — the new path is online and covered by verification. Without a replacement it is not "ready to delete" but "not finished yet".
+2. **Evidence of zeroed references** — run a reference query once before dispatch (grep, compiler, dependency graph), and write the result into the task. Do not rely on "I remember nobody uses it".
+3. **External consumer judgement** — if someone outside the repo uses it, this is not removal but deprecation: it needs a window, an announcement, a compatibility period and an expiry condition.
 
-## 檔案內要寫什麼
+## What to write in the file
 
-1. **Disappears** — 精確列出消失的符號、檔案、章節、flag、依賴。
-2. **Absence proof** — 驗收方式：哪個命令必須回報零引用、編譯通過、依賴圖無該節點、鏈接檢查通過。這是本類任務的 acceptance。
-3. **Dies with it** — 隨之而死的測試、fixture、文件段、設定鍵。**這些刪除屬於這件任務**，不是留給後面的驗證階段去重新發現。
-4. **Files owned** — 被刪的檔案，加上所有需要改寫引用它的檔案。
-5. **Steps** — 先改引用者，再刪本體，最後跑 absence proof。
-6. **Guard** — 若可能有殘留（feature flag、字串、遷移記錄、環境變數），寫明如何確認清零。
+1. **Disappears** — precisely list the symbols, files, sections, flags, dependencies that disappear.
+2. **Absence proof** — the acceptance method: which command must report zero references, compilation passes, the dependency graph has no such node, the link check passes. This is the acceptance for this class of task.
+3. **Dies with it** — the tests, fixtures, document segments, config keys that die along with it. **These deletions belong to this task**, not left for a later verification phase to rediscover.
+4. **Files owned** — the deleted files, plus all files that need their references rewritten.
+5. **Steps** — change the referencing code first, then delete the body, then run the absence proof.
+6. **Guard** — if residue is possible (feature flag, string, migration record, environment variable), state how the zeroing is confirmed.
 
-## 寫作規則
+## Writing rules
 
-- 驗收是「零引用 + 既有 oracle 全綠」，不是「檔案不見了」。
-- 不留註解掉的屍體、`_old` 後綴、永久性的 `if false`。
-- 測試的刪除與生產碼的刪除同件。實證：被刪的測試中約 91.4% 是生產碼已刪的過時測試（MSR 2025, DelTest）；不同步就會長期堆積。
-- 若刪除會改變某個 flow 的命令集，先用一件驗證任務把該 flow 的模型更新到刪除後的形狀，再刪。
-- 文檔刪減同樣要跑鏈接與交叉引用檢查。
+- The acceptance is "zero references + existing oracle all green", not "the file is gone".
+- Do not leave commented-out corpses, `_old` suffixes, permanent `if false`.
+- Deleting tests and deleting production code belong to the same task. Evidence: about 91.4% of deleted tests are stale tests whose production code was already deleted (MSR 2025, DelTest); without synchronisation they accumulate long term.
+- If the deletion changes the command set of some flow, first use one verification task to update that flow's model to the post-deletion shape, then delete.
+- Documentation removal must likewise run link and cross-reference checks.
 
-## 完成時的報告
+## Report on completion
 
-- 消失清單逐項核對。
-- absence proof 的原始輸出。
-- 隨之刪除的測試與文檔清單。
-- 是否留下任何並存物與其到期條件。
+- The disappearance list, checked item by item.
+- The raw output of the absence proof.
+- The list of tests and documentation deleted along with it.
+- Whether any coexisting artifacts are left and their expiry conditions.
 
-## 失敗樣貌
+## Failure shapes
 
-- **「先註解掉」** → 死碼永久停留，且沒有任務再對它負責。
-- **刪了生產碼沒刪測試** → 套件開始測一個不存在的東西；測試仍綠，因為它測的是 mock。
-- **沒有 deprecation 窗口就刪對外 API** → 外部消費者升級時才發現，代價回流成事故。
+- **"Comment it out first"** → dead code stays forever, and no task is responsible for it any more.
+- **Production code deleted but tests not deleted** → the suite starts testing something that does not exist; the tests stay green because they test a mock.
+- **Deleting a public API without a deprecation window** → external consumers only find out when they upgrade, and the cost flows back as an incident.

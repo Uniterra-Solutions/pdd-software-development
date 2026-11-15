@@ -1,52 +1,52 @@
-# 重構型任務（migration）
+# Migration tasks (migration)
 
-**定義**：把生產碼、測試或文檔從一個結構搬到另一個結構，而可觀察行為不變。
+**Definition**: move production code, tests or documentation from one structure to another structure, with observable behaviour unchanged.
 
-## 何時用
+## When to use
 
-- 模組邊界、目錄、內部 API、資料流、內部 schema 形狀的調整。
-- 測試的搬遷與重新分組（不是刪除）。
-- 文檔重整：章節移動、合併、改寫成新結構。
+- Adjustments to module boundaries, directories, internal APIs, data flow, internal schema shape.
+- Relocating and regrouping tests (not deleting them).
+- Documentation reorganisation: moving sections, merging, rewriting into a new structure.
 
-## 前置（缺一不可）
+## Prerequisites (all required)
 
-1. **Oracle 在場** — 既有套件足以判定，或前一件驗證任務已建立模型／基線。沒有 oracle 的重構不得派遣；那等於盲改。若沒有，先花一件驗證任務換一個 oracle，這通常比重構本身便宜。
-- **架構檢查在場（`REQ-A`）** — 若這件重構服務一條架構需求，那條需求的可執行檢查必須先存在且全綠。它才是這件任務的 acceptance；行為 oracle 只是護欄。
-2. **保留清單** — 這次搬遷必須保住的 flow、行為與結構約束（依賴方向、export 表面、執行時間預算），逐條列出。寫「行為不變」等於沒寫。
-3. **切片與回滾點** — 每一步都應能獨立綠燈；任一步不綠即停，不往上疊。
+1. **Oracle present** — the existing suite is sufficient to decide, or a previous verification task has already established a model / baseline. A migration without an oracle must not be dispatched; that is blind editing. If there is none, spend one verification task first to buy an oracle; that is usually cheaper than the migration itself.
+- **Architecture check present (`REQ-A`)** — if this migration serves an architecture requirement, the executable check for that requirement must already exist and be all green. That check is this task's acceptance; the behavioural oracle is only a guard.
+2. **Retention list** — the flows, behaviours and structural constraints this relocation must retain (dependency direction, export surface, execution-time budget), listed one by one. Writing "behaviour unchanged" amounts to writing nothing.
+3. **Slices and rollback points** — each step should be independently green; if any step is not green, stop and do not stack on top of it.
 
-## 檔案內要寫什麼
+## What to write in the file
 
-1. **Source** — 從哪裡搬（檔案、符號、章節），用集合表達。
-2. **Target** — 搬到哪裡。目標結構本身就是交付物，寫清楚；這是本專案唯一允許描述結構的任務類型。
-3. **Preserved** — 保留清單（flow id、約束名、API 表面）。
-4. **Files owned** — 來源側與目的側都歸這件任務；同一時間一個 writer。
-5. **Steps** — 每一步一個結構動作；最後一步移除舊路徑（不留下長期並存，除非有明確的 deprecation 窗口與到期條件）。
-6. **Reversible** — 回滾點在哪。
+1. **Source** — where it is moved from (files, symbols, sections), expressed as a set.
+2. **Target** — where it is moved to. The target structure is itself the deliverable, so write it clearly; this is the only task type in this project that is permitted to describe structure.
+3. **Preserved** — the retention list (flow id, constraint name, API surface).
+4. **Files owned** — both the source side and the target side belong to this task; one writer at a time.
+5. **Steps** — each step is one structural action; the last step removes the old path (leaving no long-term coexistence, unless there is an explicit deprecation window and expiry condition).
+6. **Reversible** — where the rollback points are.
 
-## 寫作規則
+## Writing rules
 
-- 搬遷與行為變更不得同件。要同時改行為，先讓重構綠，再開建設任務。
-- 一次只搬一層：先介面，再實作，再資料。
-- 舊路徑的移除屬於這件任務或緊接其後的一件刪減任務，不留「暫時並存」變成永久狀態。
-- 測試跟隨生產碼搬遷，但不得放寬斷言；放寬即行為變更。
-- 文檔搬遷後，內部鏈接與交叉引用必須仍然解析；這是派遣前就能檢查的約束。
+- Relocation and behaviour change must not be in the same task. To change behaviour at the same time, get the refactoring green first, then open a construction task.
+- Move one layer at a time: interface first, then implementation, then data.
+- Removal of the old path belongs to this task or to one removal task immediately after it; do not let "temporary coexistence" become a permanent state.
+- Tests follow production code when it moves, but assertions must not be loosened; loosening is a behaviour change.
+- After documentation relocation, internal links and cross-references must still resolve; this is a constraint that can be checked before dispatch.
 
-## 效能導向的重構
+## Performance-oriented migration
 
-效能改善幾乎都屬架構需求：只有結構改變帶來數量級提升。因此這一類任務必須寫明三件事——量測方法（儀器與命令）、目前的基線、目標預算——並在報告裡給出改動後的實測值。沒有基線的「優化」無法被接受，也無法被拒絕。
+Performance improvement almost always belongs to architecture requirements: only a structural change brings an order-of-magnitude gain. Such tasks must therefore state three things — the measurement method (instrument and command), the current baseline, and the target budget — and report the measured value after the change. An "optimisation" without a baseline cannot be accepted, and cannot be rejected either.
 
-## 完成時的報告
+## Report on completion
 
-- 架構檢查在改動後的 pass/fail，與它所判定的 `REQ-A`。
-- 保留清單逐條的證據：哪個 oracle 顯示它沒變。
-- 效能類：基線、預算、實測值，同一儀器同一命令。
-- 結構對照：來源集合 → 目的集合。
-- 舊路徑是否已移除。
-- 刻意留下的並存物與其到期條件。
+- The pass/fail of the architecture check after the change, and the `REQ-A` it decides.
+- Evidence for each item of the retention list: which oracle shows it unchanged.
+- Performance cases: baseline, budget, measured value, same instrument and same command.
+- Structural contrast: source set → target set.
+- Whether the old path has been removed.
+- Coexisting artifacts deliberately left behind and their expiry conditions.
 
-## 失敗樣貌
+## Failure shapes
 
-- **沒有 oracle 就開工** → 改完只能說「看起來一樣」。
-- **同一件裡搬檔又改行為** → 差異無法歸因，回滾點也不存在。
-- **舊路徑永遠留著** → 兩套結構長期共存，比不改更貴。
+- **Starting work without an oracle** → after the change you can only say "it looks the same".
+- **Moving files and changing behaviour in the same task** → the difference cannot be attributed, and no rollback point exists.
+- **The old path is kept forever** → two structures coexist long term, which is more expensive than not changing at all.

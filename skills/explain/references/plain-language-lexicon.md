@@ -7,73 +7,73 @@ strings and appendix A stay exempt, because a quoted original is text the reader
 ## 1. The test
 
 A word is jargon if an intelligent reader from outside software would have to ask about it — not if a
-dictionary contains it. 「表格」 is fine; 「schema」 is not. 「複本」 is fine; 「cache」 is not.
+dictionary contains it. "Table" is fine; "schema" is not. "Copy" is fine; "cache" is not.
 
 ## 2. Banned terms and their replacements
 
-| 技術詞 | 白話 |
+| Technical term | Plain language |
 | --- | --- |
-| API / endpoint / route | 對外開放的窗口：誰可以從哪裡送什麼進來、拿什麼回去 |
-| schema / model / DTO | 這張表有哪幾欄、每欄放什麼、哪幾欄不能空 |
-| database / table / row | 帳本 / 一張帳 / 一行紀錄 |
-| migration | 搬家：舊資料改成新格式，搬的途中不能掉 |
-| cache | 隨手放的複本，過期就要重拿 |
-| index | 目錄 |
-| queue / worker / job | 排隊的單子 / 誰去處理 / 定時或按需做的一件事 |
-| idempotent | 同一件事做兩次，結果跟做一次一樣 |
-| race condition / lock / mutex | 兩件事同時發生時互相踩到；同一時間只准一個進來 |
-| transaction / atomic | 要嘛整筆成功，要嘛整筆不算 |
-| timeout / retry / backoff | 等太久就當作沒收到 / 再送一次 / 越等越久再送 |
-| token / session / auth | 通行證 / 這次進來的憑證 / 驗明身分 |
-| permission / role / RBAC | 誰准做什麼 / 職位 / 按職位給權限 |
-| hash / signature / encrypt | 指紋 / 簽章 / 上鎖 |
-| regex / parse / serialize | 比對字串的樣式 / 讀懂一段文字 / 轉成可存放的寫法 |
-| refactor | 外表不變，換掉裡面 |
-| deploy / rollback / release | 上線 / 退回上一版 / 發布 |
-| CI / pipeline / test runner | 每次改動都自動重跑的一整套檢查 |
-| unit test / mock / fixture / stub | 小段演練 / 假裝的對手 / 預先擺好的場地 |
-| coverage | 演練蓋到多少種情況 |
-| DAG / dependency / wave | 誰必須先做完的順序圖 / 前後關係 / 同時可做的批次 |
-| invariant | 任何時候都不會變的規矩 |
-| requirement / spec / contract | 要求 / 標準 / 雙方的約定 |
-| latency / p99 / throughput | 最慢的那批要等多久 / 一定時間內能處理多少 |
-| flag / config key / env var | 開關 / 設定項 |
-| log / metric / alert | 紀錄 / 數字指標 / 通知 |
-| error variant / exception | 出錯時系統回報的哪一種錯 |
-| feature branch / PR / merge | 另開一條路試做 / 送審 / 合併 |
-| feature flag / canary | 只給一部分人先用的開關 |
-| cron / scheduler | 定時自動做 |
-| dry run | 空跑一次，不真的改東西 |
-| sandbox / staging | 練習場 / 試辦場地 |
-| 落地 / 賦能 / 打通 / 對齊 / 閉環 | 刪掉，改成「誰在哪裡多做或少做一件事」 |
+| API / endpoint / route | the window opened to the outside: who can send what in from where, and get what back |
+| schema / model / DTO | which columns this table has, what goes in each column, which columns cannot be empty |
+| database / table / row | ledger / one account book / one line of record |
+| migration | moving house: old data turned into the new format, and nothing may drop on the way |
+| cache | a copy left lying around; once it is out of date you have to fetch it again |
+| index | table of contents |
+| queue / worker / job | the slips that queue up / who goes and handles them / one thing done on a timer or on demand |
+| idempotent | do the same thing twice, the result is the same as doing it once |
+| race condition / lock / mutex | when two things happen at once they step on each other; only one may come in at a time |
+| transaction / atomic | either the whole entry succeeds, or the whole entry does not count |
+| timeout / retry / backoff | wait too long and it counts as not received / send it again / wait longer and longer before sending again |
+| token / session / auth | pass / the credential for coming in this time / verify identity |
+| permission / role / RBAC | who is allowed to do what / position / give permissions by position |
+| hash / signature / encrypt | fingerprint / signature / put a lock on it |
+| regex / parse / serialize | a pattern for comparing strings / read a piece of text / turn it into a storable form |
+| refactor | the outside stays the same, the inside is swapped |
+| deploy / rollback / release | go live / go back to the previous version / publish |
+| CI / pipeline / test runner | the whole set of checks that re-runs automatically on every change |
+| unit test / mock / fixture / stub | a small drill / a stand-in opponent / a stage set up in advance |
+| coverage | how many kinds of situation the drill covers |
+| DAG / dependency / wave | the order chart of who must finish first / what comes before and after / batches that can be done at the same time |
+| invariant | a rule that never changes at any time |
+| requirement / spec / contract | requirement / standard / what the two sides agreed |
+| latency / p99 / throughput | how long the slowest batch has to wait / how much can be handled within a given time |
+| flag / config key / env var | switch / setting item |
+| log / metric / alert | record / numeric indicator / notification |
+| error variant / exception | which kind of error the system reports when something goes wrong |
+| feature branch / PR / merge | open another road and try it out / send it for review / merge |
+| feature flag / canary | a switch given only to some people first |
+| cron / scheduler | do it automatically on a timer |
+| dry run | one empty run, without actually changing anything |
+| sandbox / staging | practice ground / trial venue |
+| landing / empowerment / unblock / alignment / closed loop | delete it, replace with "who does one more or one fewer thing, and where" |
 
 ## 3. Boundary cases in plain words
 
 The plan's boundary taxonomy is precise and unreadable. Translate, do not drop:
 
-| 原文 | 白話 |
+| Original | Plain language |
 | --- | --- |
-| empty / absent | 一個都沒有 / 東西不在 |
-| min / single | 只有一筆 |
-| max / at limit | 塞到上限，再來一筆就進不來 |
-| duplicate | 同一件事送兩次 |
-| out-of-order | 順序顛倒，後發的先到 |
-| malformed | 資料殘缺、格式不對 |
-| partial failure | 做到一半斷掉，前面做了、後面沒做 |
-| concurrent | 兩個人同時做同一件事 |
-| stale / version skew | 拿的是舊版本的資料 |
-| unauthorized | 沒有通行證的人來敲門 |
+| empty / absent | not a single one / the thing is not there |
+| min / single | only one entry |
+| max / at limit | filled to the limit; one more cannot get in |
+| duplicate | the same thing sent twice |
+| out-of-order | the order is reversed; the one sent later arrives first |
+| malformed | the data is incomplete, the format is wrong |
+| partial failure | it breaks off halfway; the front part got done, the back part did not |
+| concurrent | two people doing the same thing at the same time |
+| stale / version skew | what he is holding is an old version of the data |
+| unauthorized | someone without a pass comes knocking |
 
 ## 4. Banned sentence shapes
 
-| 不要寫 | 因為 | 改寫 |
+| Don't write | Because | Rewrite |
 | --- | --- | --- |
-| 系統會自動處理 | 沒有人知道拒絕長什麼樣 | 誰在什麼情況下被拒、他看到什麼 |
-| 正常情況下 | 把邊界掃到地毯下 | 講出那個不正常的條件 |
-| 理論上 / 應該 / 基本上 | 讀者無法驗收 | 給一個數字或一個可觀察事件 |
-| 具體來說（後面接空話） | 假裝具體 | 換成一個場景 |
-| 大幅提升 / 更穩定 | 無對應物 | 等多久、多久壞一次、多一倍人會怎樣 |
-| 為之後擴展留空間 | 用未來換現在的批准 | 現在多付多少、什麼條件下才用得上 |
+| the system will handle it automatically | nobody knows what a refusal looks like | who is refused under what condition, and what he sees |
+| under normal circumstances | sweeping the boundary under the carpet | state that abnormal condition |
+| in theory / should / basically | the reader cannot verify it | give a number or one observable event |
+| specifically (followed by empty talk) | pretending to be concrete | replace with a scene |
+| greatly improved / more stable | no counterpart | how long the wait is, how often it breaks, what happens with twice as many people |
+| leaving room for later expansion | trading the future for approval now | how much more is paid now, under what condition it would even be used |
 
 ## 5. What may stay in the original
 

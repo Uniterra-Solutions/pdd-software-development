@@ -4,107 +4,156 @@
 | --- | --- |
 | PRD | `<path/to/PRD.md>` |
 | Date | <YYYY-MM-DD> |
-| Status | 工作契約 |
-| Workflow | 四類任務 → model gate／oracle gate → 派遣 |
-| Task files | `tasks/<id>-<slug>.md`，一件一檔 |
+| Status | working contract |
+| Workflow | four classes → model gate / guard gate → dispatch |
+| Task files | `tasks/<id>-<slug>.md`, one file per task |
+| Scope audit | `<auditors> auditors over <n> tasks; findings <k>, adopted <a>, rejected <r>` |
 
-`TASKS.md` 是**索引層**：含類別的 DAG、任務 register、需求追蹤、gate 與派遣順序。每件任務的正文在 `tasks/` 下自己的檔案裡，那是 subagent 唯一需要讀的東西。每個檔案一個 writer。
+`TASKS.md` is the **index layer**: the DAG with classes, the task register, requirement traces, the gates and
+the dispatch order. Each task's body lives in its own file under `tasks/`, which is the only thing a subagent
+needs to read. One writer per file.
 
-沒有凍結。任務檔描述它現在如何落地；量到的 repo 與它矛盾時，main agent 修改受影響的任務、保留 id、繼續。PRD 保有它自己的文字，以 dated 決策變更。
+Nothing is frozen. A task file describes how the work lands now; when the measured repo contradicts it, the
+main agent revises the affected task, keeps the id and keeps going. The PRD keeps its own text and changes by
+dated decision.
 
-**沒有數值配額。** 大小是判斷：一件任務小到一個 subagent 一次做完、失敗能指名它；大到需要兩個 seam 才說得清就是兩件。任何檔數、步數、行數上限都會被當成配額去湊。
+**There are no numeric quotas.** Size is a judgement: a task small enough that one subagent finishes it in one
+pass and, on failure, can be named as the culprit; large enough to need two seams to describe, or to deliver
+two independently shippable results, is two tasks. Any file cap, step cap or line cap gets played up to as a
+quota.
 
-## 1. 類別清單
+## 1. Class register
 
-| Class | 件數 | 涵蓋的 flow／路徑 |
+| Class | Count | Flow / path covered |
 | --- | --- | --- |
-| construction | <n> | <flow 清單>（對應 `REQ-F`） |
-| verification | <n> | <flow ｜ 基線 ｜ 重跑> |
-| migration | <n> | <source → target>（對應 `REQ-A`，含效能） |
-| removal | <n> | <消失的東西>（功能退役或架構收斂） |
+| construction | <n> | <flow list> (`REQ-F`) |
+| verification | <n> | <flow, baseline, rerun, architecture check> |
+| migration | <n> | <source → target> (`REQ-A`, performance included) |
+| removal | <n> | <what disappears> (feature retirement or architectural convergence) |
 
 ## 2. DAG
 
 ```mermaid
 flowchart TD
-  subgraph C["建設"]
-    T1["T1 建設 · <seam>"] --> T2["T2 建設 · <seam>"]
-    T1 --> T3["T3 建設 · <seam>"]
+  subgraph C["Construction"]
+    T1["T1 construction · <seam>"] --> T2["T2 construction · <seam>"]
+    T1 --> T3["T3 construction · <seam>"]
   end
-  subgraph V["驗證"]
-    V1["V1 驗證 · <flow> 建模"]
-    V2["V2 驗證 · <flow> 基線"]
-    V3["V3 驗證 · <flow> 重跑"]
+  subgraph V["Verification"]
+    V1["V1 verification A · <flow> model"]
+    V2["V2 verification B · <flow> baseline"]
+    V3["V3 verification B/C · <flow> rerun"]
   end
-  subgraph M["重構／刪減"]
-    M1["M1 重構 · <source → target>"]
-    R1["R1 刪減 · <舊路徑>"]
+  subgraph M["Migration / removal"]
+    M1["M1 migration · <source → target>"]
+    R1["R1 removal · <old path>"]
   end
   T2 --> G1{"model gate"}
   T3 --> G1
   G1 --> V1
-  V2 --> G2{"oracle gate"}
+  V2 --> G2{"guard gate"}
   G2 --> M1
   M1 --> V3
   M1 --> R1
 ```
 
-邊 `A --> B` 表示 **B 依賴 A**，A 被接受後 B 才可開始。gate 節點沒有 owner、沒有檔案；它把時序規則畫進圖裡。同層無邊者平行。
+An edge `A --> B` means **B depends on A**: B starts only after A is accepted. A gate node has no owner and
+no files; it draws the ordering rule into the graph. Siblings with no edge between them run in parallel.
 
-派生波次：`depth(n) = 1 + max(depth(parents))`，根在第 1 波；每次改邊重算。手寫的波次清單第一次改邊就與圖矛盾。指出關鍵路徑與長度，讓擁有者看見是哪條鏈在約束排程。
+Derive the waves: `depth(n) = 1 + max(depth(parents))`, roots in wave 1; recompute after every edge change. A
+hand-written wave list contradicts the graph at the first edge change. Name the critical path and its length,
+so the owner can see which chain is constraining the schedule.
 
 ## 3. Task register
 
-| Task | Class | Title | Depends on | Files owned | REQs | Seam / Flow | File |
+| Task | Class | Title | Depends on | Files owned | REQs | Seam / flow | File |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `T1` | construction | <title> | — | `<path>` | `REQ-...` | `<file:function>` | [`tasks/T1-<slug>.md`](tasks/T1-<slug>.md) |
 | `V1` | verification | <flow model> | `G1` | `<model>`, `<harness>`, `<pin>` | `REQ-...` | `<flow>` | [`tasks/V1-<slug>.md`](tasks/V1-<slug>.md) |
 | `M1` | migration | <source → target> | `G2` | `<src>`, `<dst>` | `REQ-...` | `<file>` | [`tasks/M1-<slug>.md`](tasks/M1-<slug>.md) |
-| `R1` | removal | <舊路徑> | `M1` | `<deleted>`, `<callers>` | `REQ-...` | `<file>` | [`tasks/R1-<slug>.md`](tasks/R1-<slug>.md) |
+| `R1` | removal | <old path> | `M1` | `<deleted>`, `<callers>` | `REQ-...` | `<file>` | [`tasks/R1-<slug>.md`](tasks/R1-<slug>.md) |
 
-## 4. 任務檔
+Write every dependency id out. A range such as `V02`–`V06` is ambiguous to readers and to programs (a parser
+sees two ids), and the register must equal the DAG task by task.
 
-一件任務一個檔，檔名以類別前綴辨識（`T` 建設、`V` 驗證、`M` 重構、`R` 刪減），補零使字典序等於派遣序。每個檔自足：類別、purpose、依賴、一個 seam 或一個 flow、owned 集合、有序步驟、報告格式。
+## 4. Task files
 
-不在這裡重述任務正文。第二份會漂移，subagent 跟隨它最後讀到的那份。
+One file per task, the filename prefixed by class (`T` construction, `V` verification, `M` migration,
+`R` removal), zero-padded so lexicographic order equals dispatch order. Each file is self-sufficient: class,
+purpose, dependencies, one seam or one flow, the owned set, ordered steps, report format.
 
-## 5. 需求追蹤
+The task body is not restated here. A second copy drifts, and the subagent follows whichever copy it read
+last.
 
-| REQ | 類別 | 建設任務 | Seam | 驗證任務 | 重構／刪減 |
+## 5. Requirement trace
+
+| REQ | Kind | Construction task | Seam | Verification task | Migration / removal |
 | --- | --- | --- | --- | --- | --- |
-| `REQ-F-...` | 功能 | `T1` | `<file:function>` | `V1`（建模） | `—` |
-| `REQ-A-...` | 架構 | `—` | <它量化的模組範圍> | `V0`（架構檢查） | `M1` / `R1` |
+| `REQ-F-...` | functional | `T1` | `<file:function>` | `V1` (modelling) | `—` |
+| `REQ-A-...` | architectural | `—` | <the module range it quantifies> | `V0` (architecture check) | `M1` / `R1` |
 
-每個 PRD 需求至少出現一次。功能需求的驗證任務是建模（A）；架構需求的驗證任務是架構檢查（C），它的「seam」欄寫模組範圍而不是入口點，因為它量化的是結構。
+Every PRD requirement appears at least once. A functional requirement is verified by modelling (A); an
+architectural requirement is verified by an architecture check (C), whose seam column names a module range
+rather than an entry point, because what it quantifies is structure.
 
-沒有驗證任務的功能需求是沒人建模的 flow；沒有 C 類任務的架構需求是沒人判定的願望——兩者都寫成刻意的缺口並附理由，不要留白。
+A functional requirement with no verification task is a flow nobody models; an architectural requirement with
+no C task is a wish nobody decides. Write both as deliberate gaps with the reason, never as a blank cell.
 
-## 6. Gate 與派遣
+## 6. Gates and dispatch
 
-**model gate（`G1`）**：它所覆蓋的建設任務全部被接受後，驗證 A 類才開始。接受不是自報成功：main agent 讀報告，對 purpose 與 owned 檔案核對，並把 PRD 的表面清單再掃一遍。
+**model gate (`G1`)**: A-class verification starts only after every construction task it covers has been
+accepted. Acceptance is not a self-report: the main agent reads the report, checks it against the purpose and
+the owned files, and sweeps the PRD's surface list once more.
 
-**oracle gate（`G2`）**：基線必須在重構／刪減**之前**跑完並凍結（只讀）。改動後用同一命令、同一 artifact 重跑，逐位比較；差異即語意漂移。
+**guard gate (`G2`)**: before migration or removal, two things must be in place — the B-class behavioural
+baseline has been recorded and frozen (read only), and the C-class architecture check exists and is all
+green. After the change both rerun with the same command and the same artifact; behaviour is compared bit for
+bit, and the architecture check must still pass.
 
-派遣只在每個依賴都被 main agent 接受時發生，不是 subagent 回報成功時。
+Dispatch happens only when every dependency has been accepted by the main agent, never when a subagent
+reported success.
 
-## 7. 耦合例外
+## 7. Coupling exceptions
 
-| Task | 為什麼不是一個單位 | 補償 |
+| Task | Why it is not one unit | Compensation |
 | --- | --- | --- |
-| — | none | 切分符合規範 |
+| — | none | the cut follows the rules |
 
-例外只為可指認的耦合存在：與它一起生成的產物、repo 的層級門檻、單一 seam 的成功與拒絕、harness 只從那個檔收集 fixture。它從不合併兩個可獨立上線的行為，也從不為了湊一個數字。
+An exception exists only for an identifiable coupling: an artefact generated together with its source, a
+repo's layering threshold, one seam's success and rejection being inseparable, a harness collecting its
+fixtures from that one file. It never merges two independently shippable behaviours, and it never exists to
+hit a number.
 
-## 8. Review checklist
+## 8. Scope audit (before handoff)
 
-- [ ] 每個 PRD 需求都被覆蓋，且每件任務都追到 `REQ-F` 或 `REQ-A`；
-- [ ] 每條 `REQ-A` 都有一件 C 類驗證任務，且該檢查在重構之前已全綠；
-- [ ] 每件任務的類別與其檔案內容一致（建設無檢查、驗證無生產檔、重構有 oracle、刪減有 absence proof）；
-- [ ] 每個檔案只有一個 writer；共享檔以宣告的依賴序列化；
-- [ ] 每件重構都指得出 oracle 與保留清單；每件刪減都指得出替代品與零引用證據；
-- [ ] 每個 flow 只有一個模型檔與一個 harness 入口；
-- [ ] DAG 無環、兩個 cluster 都在、每個驗證與重構節點都掛在對應 gate 下；
-- [ ] register 的依賴欄等於 DAG 的邊；波次由深度算出並覆蓋所有任務；
-- [ ] 沒有任務檔攜帶測試、模型、基線或約束腳本；
-- [ ] 沒有任何數值配額被當成切分標準；
-- [ ] 只讀一件任務檔就能動工。
+| Auditor | Tasks audited | Neighbours read | Findings | Adopted | Rejected |
+| --- | --- | --- | --- | --- | --- |
+| `A1` | `T1` `T2` `V1` | `V0` | 1 (`T2`) | 1 | 0 |
+| `A2` | `V0` `M1` `R1` | `V1` | 0 | — | — |
+
+`ceil(n/3)` auditors, contiguous slices in dispatch order, at most three tasks each; the union of slices must
+equal the register. Brief, questions and finding table: `references/scope-audit.md`.
+
+A finding is closed only by a disposition: adopted as a dated amendment on that task (id kept, DAG, register
+and waves refreshed), or rejected with the reason recorded. Amended tasks are re-audited; untouched tasks are
+not. A cut with zero findings is reported as such, not left blank.
+
+## 9. Review checklist
+
+- [ ] every PRD requirement is covered, and every task traces to `REQ-F` or `REQ-A`;
+- [ ] every `REQ-A` has a C-class verification task, and that check is all green before the migration lands;
+- [ ] every task's class matches its file contents (construction has no checks, verification has no
+      production files, migration has an oracle, removal has an absence proof);
+- [ ] every file has exactly one writer; shared files are serialised by a declared dependency;
+- [ ] every migration names an oracle and a retention list; every removal names a replacement and the
+      evidence that references reached zero;
+- [ ] every flow has exactly one model file and one harness entry;
+- [ ] the DAG has no cycles, both clusters are drawn, and every verification and migration node hangs under
+      its gate;
+- [ ] the register's dependency column equals the DAG's edges; the waves are derived from depth and cover
+      every task;
+- [ ] no task file carries tests, models, baselines or constraint scripts;
+- [ ] no numeric quota was used as a splitting criterion;
+- [ ] `ceil(n/3)` auditors covered every task, every seam boundary fell inside some auditor's slice, and every
+      finding has a disposition;
+- [ ] reading one task file alone is enough to start work.

@@ -1,103 +1,103 @@
-# 分件 — 規範性判準
+# Task splitting — normative criteria
 
-本檔是 `pdd:decompose` 關於「怎麼切」的全部內容。SKILL 負責讀 PRD、定類、排時序；切在哪裡、為什麼可以切，在這裡。
+This file is the whole of what `pdd:decompose` says about "how to cut". SKILL reads the PRD, assigns classes and orders the sequence; where to cut, and why a cut is allowed, is here.
 
-分件只服務一件事：**失敗必須能歸因到一個單位。** 平行度是副產品。三十件任務說不出是哪件壞了，比八件能說出的差。
+Task splitting serves one thing only: **a failure must be attributable to a single unit.** Parallelism is a by-product. Thirty tasks that cannot say which one broke are worse than eight that can.
 
-**這裡沒有數值上限。** 檔案數、步數、行數都不是標準：它們可被湊，湊出來的切分比切得粗更貴。下面是描述性判準。
+**There is no numeric ceiling here.** File counts, step counts and line counts are not criteria: they can be padded, and a padded split costs more than a coarse one. What follows are descriptive criteria.
 
-## 1. 單位的形狀
+## 1. The shape of a unit
 
-一件任務是：一個可觀察的目的，一條可指認的入口或一個 flow，一組它獨自擁有的檔案，一個 subagent 一次做完。
+A task is: one observable purpose, one identifiable entry point or one flow, one set of files it owns alone, one subagent finishing it in one go.
 
-判準是三句問話：
+The criteria are three questions:
 
-1. **它改變的是哪一個入口？** 兩個入口＝兩個 seam＝兩件（或一件有明確耦合理由）。
-2. **它交付的是哪一個結果？** 兩個可獨立上線的結果＝兩件。
-3. **壞掉時，失敗能指名它嗎？** 若一件任務壞掉會讓讀者懷疑隔壁，切的位置錯了。
+1. **Which entry point does it change?** Two entry points = two seams = two tasks (or one task with an explicit coupling reason).
+2. **Which result does it deliver?** Two results that can ship independently = two tasks.
+3. **When it breaks, can the failure name it?** If a task breaking makes the reader suspect the one next door, the cut is in the wrong place.
 
-## 2. 為什麼可以超過「看起來很小」
+## 2. Why a unit may exceed "looks small"
 
-耦合是可指認的，不是感覺的。以下每一項都足以讓一個單位保有它需要的全部檔案：
+Coupling is identifiable, not felt. Each of the following is enough for a unit to keep every file it needs:
 
-- 與程式一起生成的產物（client、型別、schema）必須與來源同時落地；
-- repo 的層級門檻禁止較小切分所需的 import 路徑；
-- 一個 seam 的成功與拒絕無法分開觀察；
-- harness 只從那個檔案收集 fixture，或 registry 只認那一個登記點。
+- artifacts generated together with the code (client, types, schema) must land at the same time as their source;
+- the repo's layering threshold forbids the import path a smaller cut would need;
+- a seam's success and its refusal cannot be observed separately;
+- the harness collects fixtures only from that file, or the registry recognises only that one registration point.
 
-**方便不是理由。** 「多兩件任務」「diff 已經寫好」「一次 commit 比較整齊」都不改變判準。
+**Convenience is not a reason.** "two more tasks", "the diff is already written", "one commit is tidier" change nothing in the criteria.
 
-超過「兩個 seam 才說得清」的單位，就在任務檔的耦合例外欄寫下：哪個約束、哪些檔案、由什麼補償（哪個 oracle 一次覆蓋整體）。例外要能被下一個讀者拿去反駁。
+For a unit that exceeds "it takes two seams to say it", write in the task file's coupling exception field: which constraint, which files, and what compensates (which oracle covers the whole in one pass). An exception must be something the next reader can take up and refute.
 
-## 3. 該切開的信號
+## 3. Signals that it should be cut
 
-每個信號是「去看一眼」的理由，看完量到的 repo 再決定：
+Each signal is a reason to "go and look once"; decide after measuring the actual repo:
 
-- purpose 出現兩個可分別上線的結果（「X 和 Y」、「先 X 再 Y」）；
-- owned 檔案跨了互不 import 的層（migration ＋ route、schema ＋ component）；
-- 某一步寫著「也」「同樣」「重複以上」，那是在說第二個實例；
-- 一件任務的結果只能透過另一件任務擁有的表面讀到；
-- 一件任務的 owned 集合已經大到無法在一個 subagent 的一次會話裡讀完。
+- the purpose shows two results that can ship separately ("X and Y", "X first, then Y");
+- the owned files span layers that do not import each other (migration + route, schema + component);
+- some step says "also", "likewise", "repeat the above" — that is talking about a second instance;
+- a task's result can be read only through a surface owned by another task;
+- a task's owned set has grown too large to be read within one session of one subagent.
 
-## 4. 不該切開的形狀
+## 4. Shapes that should not be cut
 
-五個看起來很原子、實際會讓計畫失去可歸因性的形狀：
+Five shapes that look atomic but in fact strip the plan of attributability:
 
-- **一個行為切成兩半。** 兩半各自落地，配對永遠沒被看過；這個切法最誘人，所以講兩次。
-- **只為了讓另一件編譯而存在的任務。** 那是依賴，檔案屬於較早那件。
-- **按檔案切。** 必須一起改才能保持一個行為的兩個檔，是一個 seam。
-- **一串小任務。** 沒有真實順序的單位是兄弟；十件小任務買到的是交接而不是平行。切完重算波次，看寬度有沒有長。
-- **把共享前置散在消費者裡。** 兩件任務都要的 guard、fixture、registry 登記、生成器，給它自己的單位，宣告一次。
+- **One behaviour cut in half.** The two halves land separately and the pair is never looked at; this cut is the most tempting, hence said twice.
+- **A task that exists only so another one compiles.** That is a dependency, and the files belong to the earlier task.
+- **Cutting by file.** Two files that must change together to keep one behaviour are one seam.
+- **A string of small tasks.** Units with no real ordering are siblings; ten small tasks buy handovers rather than parallelism. After cutting, recompute the waves and see whether the width grew.
+- **Scattering a shared prerequisite among its consumers.** A guard, fixture, registry registration or generator that two tasks both need gets its own unit, declared once.
 
-## 5. 每條邊都要對活著的 seam 探測
+## 5. Every edge must be probed against a live seam
 
-對每條依賴 A → B 問：A 宣告的結果，在只有 A 落地、下游不在的情況下能達到嗎？
+For every dependency A → B ask: can the result A declares be reached with only A landed and the downstream absent?
 
-若 A 的結果需要一項 B 擁有的生產變更，A 不能先於 B：把行為移到 B、把 A 變成明確的 fixture／契約前置、或反轉依賴。
+If A's result needs a production change owned by B, A cannot come before B: move the behaviour into B, turn A into an explicit fixture/contract prerequisite, or invert the dependency.
 
-只能靠改一個無人擁有的生產檔才能修的反例，是分件的矛盾，不是實作的失敗。
+A counterexample that can be fixed only by editing a production file nobody owns is a contradiction in the split, not an implementation failure.
 
-## 6. 定類（切下來的同時做）
+## 6. Assigning classes (done at the same time as the cut)
 
-需求先分兩類，任務類別由它推出（`pdd:plan` v2.1）：
+Requirements are divided into two classes first, and the task class is derived from that (`pdd:plan` v2.1):
 
-| 需求 | 驗收物件 | 對應任務 |
+| Requirement | Acceptance object | Corresponding task |
 | --- | --- | --- |
-| `REQ-F` 功能需求 | 行為被建模後可證偽 | 建設 ＋ 驗證 A |
-| `REQ-A` 架構需求 | 程式碼遵守宣告的架構 | 重構／刪減 ＋ 驗證 C |
+| `REQ-F` functional requirement | falsifiable once the behaviour is modelled | construction + verification A |
+| `REQ-A` architectural requirement | the code obeys the declared architecture | migration / removal + verification C |
 
-| 任務類別 | 判準 | 擁有的檔案 |
+| Task class | Criterion | Files owned |
 | --- | --- | --- |
-| 建設 | 出現新的可觀察行為（只服務 `REQ-F`） | 生產碼、schema、migration、設定 |
-| 驗證 | 把已存在的東西變成可判定的 | A：模型、harness、pin；B：基線；C：約束腳本 |
-| 重構 | 結構改變，行為不變 | 來源側與目的側的生產檔、測試、文檔 |
-| 刪減 | 東西消失 | 被刪的檔，加上所有改寫引用的檔，加上隨之而死的測試 |
+| construction | a new observable behaviour appears (serves `REQ-F` only) | production code, schema, migration, config |
+| verification | turns something already present into something decidable | A: model, harness, pin; B: baseline; C: constraint script |
+| migration | structure changes, behaviour does not | production files on the source and target sides, tests, docs |
+| removal | something disappears | the deleted files, plus every file whose references are rewritten, plus the tests that die with it |
 
-一條需求同時要新行為與新結構時，它在 PRD 就該是兩條（`REQ-F` 加 `REQ-A`）。若在分件階段才發現，退回 `pdd:plan` 補一條，不要在任務層混合兩類。
+When one requirement needs both new behaviour and new structure, it should be two requirements in the PRD (`REQ-F` plus `REQ-A`). If this is discovered only at the splitting stage, go back to `pdd:plan` and add one; do not mix the two classes at the task level.
 
-三條由此推出的規則：
+Three rules follow from this:
 
-1. **改生產碼就是建設或重構，即使動機是驗證發現的缺陷，即使只有一行。** 沒有混合類別。
-2. **一件驗證任務一個 flow。** 兩個 flow 兩件，因為失敗報告與模型檔都是 per flow。
-3. **兩件驗證任務共用的前置**（harness 入口、生成器、fixture 載入器）自己是一件驗證任務，先落地，否則兩邊都改它。
+1. **Editing production code is construction or migration, even when the motive is a defect found by verification, even when it is one line.** There is no mixed class.
+2. **One verification task, one flow.** Two flows, two tasks, because the failure report and the model file are both per flow.
+3. **A prerequisite shared by two verification tasks** (harness entry, generator, fixture loader) is itself a verification task and lands first, otherwise both sides edit it.
 
-## 7. 擁有權
+## 7. Ownership
 
-一個檔案一個 writer 是上面所有規則服務的不變量。manifest、lockfile、shared enum／type module、migration chain、harness 入口給根任務；熱檔各給一個 owner；共享 guard、fixture、承載 helper 的物件各給一個 owner；每個 exported hook 要有一個擁有呼叫點的 owner。完整清單（宣告點、barrel、registry、釘住集合的 oracle、harness 收集）在 `references/ownership-rules.md`。
+One file, one writer is the invariant all the rules above serve. manifest, lockfile, shared enum/type module, migration chain, harness entry go to the root task; hot files each get one owner; shared guards, fixtures and objects carrying helpers each get one owner; every exported hook needs an owner that owns the call site. The complete list (declaration points, barrels, registries, the oracle that pins the set, harness collection) is in `references/ownership-rules.md`.
 
-## 8. 單位怎麼寫下來
+## 8. How a unit is written down
 
-purpose、seam 或 flow、依賴、owned 集合、有序步驟。這是全部契約；`assets/TASK.md` 是表格。分件決定而寫作者不可丟失的兩條：
+purpose, seam or flow, dependencies, owned set, ordered steps. That is the whole contract; `assets/TASK.md` is the table. Two things decided at splitting time that the writer must not lose:
 
-- **seam 是一個生產入口**（`file:function`、route、command），因為 trace matrix 要把 `REQ` 映上去，失敗報告也要指名它；
-- **單位只讀自己的檔就能動工**：寫明 seam 與每個邊界，模組佈局與實作留給 subagent。
+- **a seam is a production entry point** (`file:function`, route, command), because the trace matrix has to map `REQ`s onto it, and the failure report has to name it too;
+- **a unit can start from its own files alone**: state the seam and every boundary; module layout and implementation are left to the subagent.
 
-## 9. 派遣前的逐件檢查
+## 9. Per-task check before dispatch
 
-- [ ] 一個 purpose、一個 seam 或 flow、依賴已寫；
-- [ ] 每個檔案一個 writer，依賴顯式，沒有任務需要未宣告的檔案；
-- [ ] steps import 的每個模組都屬於它或已宣告的依賴；
-- [ ] 每條邊都對活著的 seam 探測過；
-- [ ] 類別是四者之一，且沒有任何一件同時擁有生產檔與模型檔；
-- [ ] PRD 列的每個表面都有一件建設任務在 purpose 或 owned 檔案裡建它——只是被提到不算；
-- [ ] 一個 subagent 只讀這個檔就能動工。
+- [ ] one purpose, one seam or flow, dependencies written;
+- [ ] one writer per file, dependencies explicit, no task needs an undeclared file;
+- [ ] every module the steps import belongs to it or to a declared dependency;
+- [ ] every edge has been probed against a live seam;
+- [ ] the class is one of the four, and no single task owns both production files and model files;
+- [ ] every surface the PRD lists has a construction task that builds it in its purpose or owned files — merely being mentioned does not count;
+- [ ] one subagent can start from reading only this file.

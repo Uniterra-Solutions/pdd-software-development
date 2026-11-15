@@ -1,58 +1,114 @@
-# 執行陷阱目錄
+# Dispatch pitfalls
 
-每一條都是派遣與驗收時真實出現過的失敗模式，附機制與修法。派遣一層前讀一遍，gate 紅時再讀一遍。`SKILL.md` 按同一組類別索引它。
+Every entry is a failure mode that actually occurred during dispatch and acceptance, with its mechanism and
+its fix. Read it before dispatching a layer, and again when a gate goes red. `SKILL.md` indexes it by the same
+groups.
 
-## 一、派遣紀律
+## 1. Dispatch discipline
 
-- **把子代理的自報當證據。** 「done」不代表 purpose 從真實入口可觀察，也不代表 delta 在 owned 內。驗收一律由 dispatcher 自己做，不讀報告的結論、只讀它的原始輸出。
-- **偏離 DAG 派遣。** 憑印象覺得某件任務「差不多可以開始」；一旦有一件先跑，後面的歸因全部失效。ready set 只由已接受的依賴算出。
-- **一個子代理接多件任務。** 兩件任務混在一份 brief 裡，失敗時分不出是哪一件的 seam 壞了，且 owned 交集無人負責。
-- **平行子代理執行 `git` 操作。** 同時 `git add`／`checkout`／`stash` 會互相踩踏使用者的工作；只有 dispatcher 碰 git。
-- **分波時破壞偏序。** 平行上限小於 ready set 時，波與波之間仍必須守 DAG 的邊；把第二波的一件提前塞進第一波是重排，不是排程。
+- **Treating a subagent's self-report as evidence.** "Done" does not mean the purpose is observable from the
+  real entry point, nor that the delta stayed inside owned. Acceptance is always done by the dispatcher, which
+  reads the raw output rather than the report's conclusion.
+- **Dispatching off the DAG.** "It looks like it can start now" — once one task jumps ahead, every later
+  attribution is void. The ready set is computed only from accepted dependencies.
+- **One subagent carrying several tasks.** Two tasks in one brief means a failure cannot be attributed to
+  either seam, and the intersection of their owned sets belongs to nobody.
+- **Parallel subagents running `git`.** Concurrent `git add` / `checkout` / `stash` trample the user's work;
+  only the dispatcher touches git.
+- **Breaking the partial order while splitting into waves.** When the parallelism ceiling is below the ready
+  set, the edges still hold between waves; pulling a second-wave task into the first wave is a reordering,
+  not a schedule.
+- **Opening the next batch before closing the last one.** Worktrees from the previous batch, still holding the
+  older baseline, are read as current; the second batch's green is measured against a tree that is missing the
+  first batch's merged deltas.
 
-## 二、假綠
+## 2. False green
 
-- **exit 0 但跑零個案子。** 選擇器寫錯、目錄不在 include glob 內、mount 缺失，都會讓命令成功而什麼都沒執行。沒有實際執行量的綠是 pending。
-- **測試由實作反推。** 看著剛寫好的碼寫斷言，測的是這份實作而不是需求；A 類一律從決策表與報表寫。
-- **事後改測試讓它過。** 唯一合法的修法是改生產碼；契約不合就停下，不要讓斷言遷就現況。
-- **把紅推給環境而不重跑。** 字型版本、工具鏈差異都可能是真因，也可能是藉口；dispatcher 自己跑一次同一命令，一個命令就分辨得出來。
-- **重跑直到綠。** 重跑不是修復。允許一次隔離重跑以排除 flake，結果記成 waiver，之後不再為它燒 gate。
-- **綠的檢查從未咬過。** 一個永遠 pass 的檢查什麼都沒證明；C 類要以 `mutate_check.py` 注入違反必須紅，B 類要以同樣方式確認基線會咬。
+- **Exit 0 while running zero cases.** A wrong selector, a directory outside the include glob, a missing mount
+  — the command succeeds and nothing executes. Green without executed volume is pending.
+- **Tests derived from the implementation.** Writing assertions while looking at the code you just wrote
+  measures that implementation, not the requirement; A-class tests are written from the decision table and the
+  report.
+- **Editing the test afterwards to make it pass.** The only legitimate fix is the production code; if the
+  contract does not fit, stop.
+- **Blaming the environment without rerunning.** Font version and toolchain differences can be the real cause,
+  or an excuse; the dispatcher runs the same command once, and one command tells them apart.
+- **Rerunning until green.** Rerunning is not fixing. One isolated rerun is allowed to exclude a flake; the
+  result is recorded as a waiver, and no further gate budget is spent on it.
+- **A green check that never bit.** A check that always passes proves nothing; C-class injects a violation with
+  `mutate_check.py` and must go red, and B-class confirms its baseline bites the same way.
 
-## 三、Gate 與時序
+## 3. Gates and ordering
 
-- **gate 未滿足就派下游。** 「先做，之後補檢查」等於取消 gate：A 類模型會描述尚未定型的碼，B 類基線會拿新碼與自己比較。
-- **在建設落地前建模。** 模型描述的是想像中的實作，property 釘住設計幻想，第一個真實行為改動就被回報成模型缺陷。
-- **重構任務修改判定它自己的檢查。** 檢查一鬆，重構自動合規。任何對約束、基線、pin 的修改都要先有 dated amendment。
-- **把 gate 條件當建議。** gate 的意義是「不滿足就不派」；把它讀成「盡量滿足」會讓整條時序失去意義。
+- **Dispatching downstream with the gate unmet.** "Do it first, add the check later" cancels the gate: an
+  A-class model describes code that is not settled, and a B-class baseline compares new code with itself.
+- **Modelling before the construction lands.** The model describes an imagined implementation, the properties
+  pin down a design fantasy, and the first real behavioural change is reported as a model defect.
+- **A migration task editing the check that judges it.** Once the check is loosened the migration is compliant
+  by construction. Any change to a constraint, a baseline or a pin requires a dated amendment first.
+- **Reading a gate condition as advice.** The gate means "unmet, so do not dispatch"; reading it as "meet it if
+  possible" makes the whole ordering meaningless.
 
-## 四、共享狀態
+## 4. Shared state
 
-- **同一檔案兩個 writer。** 後整合的一方靜默吞掉先前的 delta，兩邊都回報成功。
-- **共享 registry／barrel／route table 無 owner。** router 表、plugin list、app factory 的 `register`、靜態 mount 沒有單一子代理能擁有；dispatcher 在派遣前建立，並宣告唯讀。
-- **共享 build 目標。** 兩個子代理共用 `target/`（或等價目錄）時，一個人的 clean 會刪掉另一個人的產物，而各自的命令仍然 exit 0。
-- **子代理跨 worktree 動手。** 建立或移除 worktree、merge、cherry-pick、清理共享產物，全部屬於 dispatcher。
-- **中斷的子代理留下穩定突變。** 一個未還原的 mutation 可以是穩定的，被複製進每個 worktree 與主基線；要從證據恢復（最後已知良好 checkpoint、mutation 腳本與備份），保留突變為證據，只還原那一個 hunk。
+- **Two writers on one file.** Whoever integrates second silently swallows the earlier delta, and both report
+  success.
+- **A shared registry / barrel / route table with no owner.** The router table, the plugin list, the app
+  factory's `register`, the static mounts — no single subagent can own them; the dispatcher builds them before
+  dispatch and declares them read-only.
+- **A shared build target.** Two subagents sharing `target/` (or its equivalent): one's clean deletes the
+  other's artefacts while both commands still exit 0.
+- **A subagent reaching across worktrees.** Creating or removing a worktree, merging, cherry-picking, cleaning
+  shared artefacts — all of it belongs to the dispatcher.
+- **An interrupted subagent leaves a stable mutation.** An unrestored mutation can be stable, and is then
+  copied into every worktree and into the main baseline; recover from evidence (last known good checkpoint, the
+  mutation script and its backups), keep the mutation as evidence, and restore only that one hunk.
+- **The batch ends with the merge deferred.** The next batch opens on a baseline that predates the previous
+  batch's deltas; when the merge finally happens, the conflict is real and unattributable. Merge at the end of
+  the batch, not at the end of the run.
+- **Merging into whatever `HEAD` is now.** The user switched branches mid-run and the merge succeeds onto the
+  wrong one; the merge target is the branch recorded before the first worktree existed.
+- **'Removed' means the directory only.** The `pdd/<task-id>` branch survives, the next run treats it as
+  current work, and `git worktree list` still shows a prunable entry. Removal is the four commands, ending with
+  reading `git worktree list`.
 
-## 五、類別越界
+## 5. Class overreach
 
-- **建設任務順手寫測試。** 這是舊模型的新檔稅：每個 task 都新增一份斷言，套件只增不減。建設只交付行為。
-- **驗證任務改生產碼。** 缺陷消失在沒人 review 的 diff 裡，且它的報告失去可信度。驗證只報 trace、seed、最短序列。
-- **重構任務順便改行為。** 差異無法歸因，回滾點也不存在。要改行為就另開建設任務，先讓重構綠。
-- **刪減留下註解屍體。** `_old` 後綴、`if false`、永久並存：死碼停留，而不再有任務對它負責。
-- **刪了生產碼沒刪測試。** 套件開始測一個不存在的東西，而且仍然綠，因為它測的是 mock。隨之而死的測試屬於這件刪減任務。
-- **刪減沒有替代品。** 使用者還沒拿到新東西就先失去舊的；替代品上線並被驗證覆蓋之後才輪到刪。
+- **A construction task writing tests along the way.** This is the old model's new-file tax: every task adds one
+  more assertion file and the suite only grows. Construction delivers behaviour.
+- **A verification task editing production code.** The defect disappears into an unreviewed diff and the
+  report loses its credibility. Verification reports the trace, the seed and the minimal sequence.
+- **A migration changing behaviour along the way.** The difference is unattributable and there is no rollback
+  point. Behaviour changes go into their own construction task, after the migration is green.
+- **A removal leaving comment corpses.** `_old` suffixes, `if false`, permanent coexistence: dead code stays
+  and no task is responsible for it any more.
+- **Production code deleted, its tests kept.** The suite starts testing something that no longer exists and
+  stays green, because it asserts against a mock. The tests that die with it belong to the removal task.
+- **A removal with no replacement.** The user loses the old thing before having the new one; the replacement
+  ships and is covered by verification first.
 
-## 六、歸因
+## 6. Attribution
 
-- **紅指向 diff 外的檔案。** 先假設 contention：一次隔離重跑；仍然紅才是真回歸。
-- **等待代理而非觀察。** 在 load 下斷言跑在狀態提交之前，於是「單獨綠、整套紅」看起來像 flake，其實是競態。等被觀察的產物本身，不放寬 timeout。
-- **跨動態載入器的 `instanceof`。** 同一份碼在兩個載入器中是兩個建構子；用結構或標記判斷，不用身分。
-- **build artefact 的 forward reference。** 產物內部引用尚未存在的東西，冷啟動才暴露；以冷啟動驗證，不以增量輸出驗證。
+- **Red pointing at a file outside the diff.** Assume contention first: one isolated rerun; still red is a
+  real regression.
+- **Waiting on the agent instead of on the observation.** Under load the assertion runs before the state
+  commits, so "green alone, red in the suite" looks like a flake but is a race. Wait on the artefact being
+  observed, not on a longer timeout.
+- **`instanceof` across a dynamic loader.** The same code is two constructors in two loaders; use structure or
+  a marker, not identity.
+- **A forward reference inside a build artefact.** The artefact refers to something that does not exist yet,
+  and only a cold start exposes it; verify with a cold start, not with incremental output.
 
-## 七、契約與現實
+## 7. Contract and reality
 
-- **用「實際情況如此」改寫條款。** 這是把契約變成紀錄片。現實與契約衝突時停下回報，由 `pdd:decompose` 改契約，再由使用者決定是否重派。
-- **硬塞兩個行為進一件任務。** 為了避開「停下來」而把兩件事做在一件裡，換來的是無法歸因的失敗。
-- **把不可滿足當成可繞過。** 子代理報告不可滿足是完成工作的一部分；繞過它（縮小域、改名、加例外）等於靜默放棄那條需求。
-- **停下但不記錄。** 停下的價值在它留下的三樣東西：命令與原始輸出、最小反例、牴觸的契約條文。缺一，下一個人要從頭重做。
+- **Rewriting a clause because "this is how it really is".** That turns the contract into a documentary. When
+  reality conflicts with the contract, stop and report; `pdd:decompose` changes the contract and the user
+  decides whether to re-dispatch.
+- **Cramming two behaviours into one task.** To avoid stopping, two things are done in one task, and the price
+  is a failure nobody can attribute.
+- **Treating "unsatisfiable" as something to route around.** A subagent reporting unsatisfiability is doing its
+  job; routing around it (narrowing the domain, renaming, adding an exception) silently gives up that
+  requirement.
+- **Stopping without recording.** The value of a stop is the three things it leaves: the command and its raw
+  output, the minimal counterexample, and the contract clause it contradicts. Miss one and the next person
+  starts from scratch.

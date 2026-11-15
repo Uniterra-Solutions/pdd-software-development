@@ -1,91 +1,91 @@
-# <計畫名稱> 到底在做什麼
+# What <plan name> Is Actually Doing
 
-| 欄位 | 值 |
+| Field | Value |
 | --- | --- |
-| 標準來源 | `<plan-dir>/PRD.md`、`<plan-dir>/TASKS.md`、`<plan-dir>/tasks/` |
-| 日期 | <YYYY-MM-DD> |
-| 讀者 | <誰要讀這份；他的決定是什麼> |
-| 說明語言 | <讀者的語言> |
-| 比喻域 | <單一比喻域，例如「海關與報關行」> |
-| 不含 | 技術名詞、檔案清單、施工步驟 |
+| Source of truth | `<plan-dir>/PRD.md`, `<plan-dir>/TASKS.md`, `<plan-dir>/tasks/` |
+| Date | <YYYY-MM-DD> |
+| Reader | <who is to read this; what his decision is> |
+| Explanation language | <the reader's language> |
+| Metaphor domain | <a single metaphor domain, e.g. "customs and the customs broker"> |
+| Excludes | technical terms, file lists, construction steps |
 
-> 這份文件說明「要求了什麼、決定了什麼、檢查什麼」，不作品質判斷，也不替任何一方背書。
-> 凡屬我的推論，文中標「（推論）」；文件沒寫的，不補寫成文件的意思。
+> This document explains "what was required, what was decided, what is checked"; it makes no quality judgement and endorses no side.
+> Anything that is my inference is marked "(inference)" in the text; whatever the documents do not say is not written up as if it were what they mean.
 
-## 1. 一句話版本
+## 1. The one-sentence version
 
-<一段話，五句以內：對誰、解決什麼、怎麼解決、代價是什麼、什麼時候應該重新考慮。>
+<One paragraph, within five sentences: for whom, what it solves, how it solves it, what the cost is, when it should be reconsidered.>
 
-## 2. 比喻：<比喻域>
+## 2. Metaphor: <metaphor domain>
 
-<三到五句，把整個計畫的形狀講成這個世界的樣子：誰守門、東西從哪來、經過誰的手、留下什麼紀錄。>
+<Three to five sentences, telling the shape of the whole plan as this world: who guards the gate, where things come from, whose hands they pass through, what record is left.>
 
-### 2.1 角色對照表
+### 2.1 Role mapping table
 
-| 比喻中的角色 | 計畫裡的東西 | 編號 |
+| Role in the metaphor | The thing in the plan | Id |
 | --- | --- | --- |
-| <角色> | <東西或規則> | `<REQ-…/D…/T…>` |
+| <role> | <thing or rule> | `<REQ-…/D…/T…>` |
 
-### 2.2 這個比喻到哪裡為止
+### 2.2 Where this metaphor stops
 
-- 撐得住：<它能幫你想像的部分>
-- 撐不住：<它會誤導的部分，以及改看第幾節>
+- Holds up: <the part it can help you imagine>
+- Does not hold up: <the part it will mislead on, and which section to read instead>
 
-## 3. 需求逐條
+## 3. Requirements, one by one
 
-按要求在現實中發生的先後排序，編號只當標籤。
+Ordered by when the requirement happens in reality; the id is only a label.
 
-### `REQ-<flow>-1` <白話標題>
+### `REQ-<flow>-1` <plain-language title>
 
-- **場景**：<一個具體的人，在一個具體時刻，遇到什麼。>
-- **保證**：<系統在這裡一定做到什麼，保留全部數字與單位。>
-- **若沒有這條保證**：<具體故障事件：誰在什麼時候發現、損失什麼。>
-- **邊界**：<空的 / 塞滿 / 同一件事送兩次 / 順序顛倒 / 資料殘缺 / 做到一半斷掉，哪幾項適用，怎麼表現。>
-- **看得見的證據**：<外行人從哪裡確認它做到了。>
-- **在比喻裡**：<一句話；翻不回契約就刪掉這行。>
+- **Scene**: <one specific person, at one specific moment, runs into what.>
+- **Guarantee**: <what the system always does here; keep every number and unit.>
+- **If this guarantee were absent**: <a specific failure event: who finds out when, and loses what.>
+- **Boundary**: <empty / full / the same thing sent twice / order reversed / data incomplete / broken off halfway — which apply, and how they show up.>
+- **Visible evidence**: <where a layperson confirms that it did it.>
+- **In the metaphor**: <one sentence; if it cannot be translated back to the contract, delete this line.>
 
-## 4. 決策逐條
+## 4. Decisions, one by one
 
-### `D<n>` <白話標題>
+### `D<n>` <plain-language title>
 
-- **兩條路**：<A 與 B，各一句，講系統後果不講偏好。>
-- **選了**：<A，一句。>
-- **另一條會怎麼壞**：<B 在某個具體情境下發生的具體故障。>
-- **代價**：<選 A 之後多付的成本、少掉的能力、變慢的地方。>
-- **什麼情況下應該推翻**：<一個可觀察的條件，出現時這個選擇就不划算了。>
-- **在比喻裡**：<一句話。>
+- **The two roads**: <A and B, one sentence each, stating system consequences not preferences.>
+- **Chosen**: <A, one sentence.>
+- **How the other one would break**: <the specific failure B produces in one specific situation.>
+- **Cost**: <after choosing A, the extra cost, the lost capability, the places that got slower.>
+- **When it should be overturned**: <one observable condition whose appearance makes this choice no longer worth it.>
+- **In the metaphor**: <one sentence.>
 
-## 5. 驗證策略：每個流程在防哪一種錯
+## 5. Verification strategy: which error each flow is guarding against
 
-按業務流程（flow）分節，不按任務分。每個流程的檢查回答三題：防哪種錯、在哪裡看得見、抓不到什麼。
+Sections by business flow, not by task. Each flow's checks answer three questions: which error it guards against, where it is visible, what it fails to catch.
 
-### `F<n>` <白話的流程名>
+### `F<n>` <the flow's name in plain language>
 
-- **防哪一種錯**：<有人可能這樣做錯：把這個流程的拒絕條件或必須成立的規則翻成白話，而其他部分看起來都正常。>
-- **在哪裡看得見**：<檢查時看的那個地方，用外行話描述。>
-- **抓不到什麼**：<這個檢查會放過的錯，標（推論）如屬推論。>
-- **尚未驗證**：<僅在還沒建模時保留：說明檢查已規劃、還沒跑過；其餘情況刪掉這行。>
-- **在比喻裡**：<一句話。>
+- **Which error it guards against**: <someone could go wrong this way: translate this flow's refusal conditions or rules that must hold into plain language, while every other part looks normal.>
+- **Where it is visible**: <the place looked at during a check, described in layman's words.>
+- **What it fails to catch**: <the errors this check will let through; mark (inference) if it is an inference.>
+- **Not yet verified**: <keep only when not yet modelled: state that the check is planned and has not been run; in all other cases delete this line.>
+- **In the metaphor**: <one sentence.>
 
-## 6. 比喻失效的地方
+## 6. Where the metaphor fails
 
-- <位置 — 比喻怎麼壞掉 — 改用什麼說法 — 那一段精確的意思是什麼。>
+- <location — how the metaphor breaks — what wording to use instead — what the precise meaning of that passage is.>
 
-## 7. 文件沒說的地方
+## 7. Where the documents say nothing
 
-每項寫成一個要你回答的問題，並指出會影響哪一條。
+Write each item as a question for you to answer, and point out which requirement it would affect.
 
-- <問題> — 會改變 `<REQ-…>`。
+- <question> — would change `<REQ-…>`.
 
-## 8. 矛盾與必須由你決定的事
+## 8. Contradictions and things that must be decided by you
 
-- <兩條不能同時成立的要求，各引一句> — 我不代為選擇；兩邊的後果是：<A 成立則 …；B 成立則 …>。
-- <需要你決定的方向> — 選項與各自後果，我的建議標「（助手建議）」。
+- <two requirements that cannot both hold, quote one sentence from each> — I do not choose on your behalf; the consequences on each side are: <if A holds then …; if B holds then …>.
+- <the direction that needs your decision> — the options and their respective consequences; my recommendation is marked "(assistant recommendation)".
 
-## 附錄 A 原文對照（可選）
+## Appendix A Original-text reference (optional)
 
-只在讀者會親眼看到這些字串時保留。此節不計入技術名詞檢查。
+Keep this only when the reader will see these strings with his own eyes. This section does not count towards the technical-term check.
 
-| 原文 | 白話 | 讀者會在何處遇到 |
+| Original | Plain language | Where the reader will meet it |
 | --- | --- | --- |
-| `<string>` | <白話意思> | <畫面／訊息／指令> |
+| `<string>` | <plain-language meaning> | <screen / message / command> |

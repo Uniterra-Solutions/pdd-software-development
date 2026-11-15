@@ -1,51 +1,51 @@
-# 建設型任務（construction）
+# Construction tasks (construction)
 
-**定義**：新增一個原本不存在的可觀察行為。**只服務 `REQ-F`。**
+**Definition**: add one observable behaviour that did not exist before. **Serves `REQ-F` only.**
 
-架構需求（`REQ-A`）不產生建設任務：它由重構與刪減達成，由 C 類架構檢查判定。若一件「建設」任務的 purpose 只能寫成「使某段程式碼符合某個結構規則」，它其實是重構任務。
+Architecture requirements (`REQ-A`) do not produce construction tasks: they are achieved by refactoring and removal, and are decided by the C check / architecture check. If the purpose of a "construction" task can only be written as "make some piece of code conform to a structural rule", it is actually a migration task.
 
-## 何時用
+## When to use
 
-- PRD 的某個 flow 有命令、狀態或保證尚未實作。
-- 某個 surface 首次變得可用。
+- Some flow in the PRD has a command, state or guarantee that is not yet implemented.
+- Some surface becomes usable for the first time.
 
-## 不屬於這一類
+## Not this class
 
-| 情況 | 應歸類 |
+| Situation | Should be classified |
 | --- | --- |
-| 改變既有行為 | 不是建設。原 flow 的模型必須更新，且通常要一條新 `REQ` |
-| 把代碼從 A 搬到 B | 重構（migration） |
-| 讓任何東西消失 | 刪減（removal） |
-| 為新行為建立檢查或模型 | 驗證（verification），且在建設被接受之後 |
+| Changing existing behaviour | Not construction. The model of the original flow must be updated, and usually a new `REQ` is needed |
+| Moving code from A to B | Migration |
+| Making anything disappear | Removal |
+| Establishing a check or model for new behaviour | Verification, and after the construction has been accepted |
 
-## 檔案內要寫什麼
+## What to write in the file
 
-1. **Purpose** — 一個新出現的可觀察結果。兩個可獨立上線的結果是兩件任務。
-2. **Seam** — 這類任務**創造**的入口點（`file:function`、route、command）。
-3. **Files owned** — 一個行為的最小充分集合：來源檔與它直接需要的配套（型別、migration、設定、註冊登錄）屬於同一件。
-4. **Steps** — 每一步只做一件事；最後一步讓 surface 從真實入口可達。
-5. **Boundary** — 寫入時就必須處理的邊界，只列 PRD 指定會改變業務結果的那些（無事可做、上限、重複、亂序、壞輸入、中斷）。
-6. **Refusal** — 具名的 refuse class，以及它對應的行為。
-7. **Untouched** — 明確指出不會變的東西。若你的改動令既有斷言失效，在報告裡列出，並依 `ownership-rules.md` 的刪除規則同件處理。
-8. **Flow it feeds** — 它為哪個 flow 新增命令。這一行讓驗證任務有東西可建模。
+1. **Purpose** — one newly appearing observable result. Two independently shippable results are two tasks.
+2. **Seam** — the entry point this class of task **creates** (`file:function`, route, command).
+3. **Files owned** — the minimal sufficient set for one behaviour: the source file and the supporting pieces it directly needs (types, migration, config, registration entries) belong to the same task.
+4. **Steps** — each step does one thing; the last step makes the surface reachable from a real entry point.
+5. **Boundary** — boundaries that must be handled at write time; list only those the PRD specifies as changing business results (nothing to do, upper limit, duplicate, out of order, bad input, interruption).
+6. **Refusal** — the named refuse class, and its corresponding behaviour.
+7. **Untouched** — explicitly state what will not change. If your change invalidates an existing assertion, list it in the report, and handle it in the same task per the removal rules of `ownership-rules.md`.
+8. **Flow it feeds** — which flow it adds commands to. This line gives the verification task something to model.
 
-## 寫作規則
+## Writing rules
 
-- 一件任務一個新行為。
-- 不要把「讓它編譯」「接上 registry」「補型別」拆成獨立任務——那是同一行為的部分。
-- 任務檔裡不寫檢查、不寫模型、不寫 pin。
-- 若兩個新行為必須同時改同一個檔案，它們共用一個 seam：合成一件，或先做一件共享前置（共享前置本身也是建設型）。
-- 描述到「一個 subagent 不讀其他任務檔就能動工」為止，模組佈局留給它。
+- One task, one new behaviour.
+- Do not split "make it compile", "hook it up to the registry", "add the types" into separate tasks — those are parts of the same behaviour.
+- The task file contains no checks, no models, no pin.
+- If two new behaviours must change the same file at the same time, they share one seam: merge them into one task, or do one shared prerequisite first (the shared prerequisite is itself construction).
+- Describe up to "a subagent can start work without reading other task files"; leave module layout to it.
 
-## 完成時的報告
+## Report on completion
 
-- 新增的可觀察行為（呼叫者現在看到什麼）。
-- 檔案清單，逐項對 `Files owned`。
-- 偏離本檔之處與理由。
-- 新增的命令屬於哪個 flow，是否有 refuse class 尚未實作。
+- The added observable behaviour (what the caller now sees).
+- The file list, item by item against `Files owned`.
+- Deviations from this file and the reasons.
+- Which flow the added commands belong to, and whether any refuse class is not yet implemented.
 
-## 失敗樣貌
+## Failure shapes
 
-- **Purpose 寫成內部結構**（「新增 XxxService」）→ surface 仍不可達，重寫 purpose。
-- **兩個任務同時改一個註冊表** → 缺一件共享前置。
-- **建設任務裡順手加了檢查** → 驗證階段會與它衝突，且刪除時無人負責。
+- **Purpose written as internal structure** ("add XxxService") → the surface is still unreachable; rewrite the purpose.
+- **Two tasks changing one registry at the same time** → a shared prerequisite is missing.
+- **A check slipped into a construction task** → it will conflict with the verification phase, and no one is responsible for it when removing.
