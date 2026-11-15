@@ -1,0 +1,8 @@
+name: pdd
+version: 1.0.0
+description: Proposition-Driven Development — a five-skill workflow (PRD planning, task decomposition, dispatch, review, plain-language explanation) for business-first specs, four task classes and flow-level verification.
+author: Uniterra Solutions Ltd.
+license: MIT
+homepage: https://github.com/Uniterra-Solutions/pdd-software-development
+provides_tools: []
+provides_hooks: []
