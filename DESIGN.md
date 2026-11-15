@@ -212,7 +212,15 @@ object of its own.
   behaviour and what makes each change fire — the ground truth that §3's typed acceptance, §4's class table and
   §5's flow models all assume someone already has.
 
+`pdd:archive` is the same argument applied to the *past* instead of the present. A plan records a decision once;
+after two reversals the plan is worse than nothing, because it states a rule that no longer holds with an
+authority no reader can see through. The archive converts that pile into a register where **one claim survives
+per subject — the newest — with the rejected alternative and the quoted reason**, and then deletes the pile. The
+design decision worth naming: a history that keeps both sides of a contradiction is not neutral, it is a
+document that makes the reader the arbiter, and the smaller the team the more that arbitration costs. The
+older claim is one `git show` away, and the deletion commit names the decisions that justified it.
+
 ---
 
-*Applies to plugin `pdd` 1.2.0: `pdd:plan`, `pdd:decompose`, `pdd:implement`, `pdd:review`, `pdd:explain`, and the
-companion `pdd:study`.*
+*Applies to plugin `pdd` 1.3.0: `pdd:plan`, `pdd:decompose`, `pdd:implement`, `pdd:review`, `pdd:explain`, and the
+companions `pdd:study` and `pdd:archive`.*

@@ -1,12 +1,14 @@
 # pdd-software-development
 
-A Hermes plugin that ships **Proposition-Driven Development (PDD)** as five bundled skills, plus one
-companion skill that maps an existing codebase so the other five have ground truth to work from.
+A Hermes plugin that ships **Proposition-Driven Development (PDD)** as five bundled skills, plus two
+companions that work on a repository before and after the plan: one maps what the code does today, the
+other retires the plans that no longer do.
 
 PDD is a business-first spec workflow: the PRD describes business logic and observable behaviour,
 decomposition yields four classes of task, and verification is modelled per business flow rather
-than per task. `pdd:study` is the input side of the same argument — it reconstructs the branches a
-codebase already has, with citations, before anything is planned against them.
+than per task. `pdd:study` reconstructs the branches a codebase already has, with citations, before
+anything is planned against them; `pdd:archive` turns a pile of superseded plans into one history of
+decisions and eras, then deletes the pile — the reasoning survives, the archaeology does not.
 
 ## Install
 
@@ -33,6 +35,7 @@ same-named skill on disk — call the qualified name:
 | `pdd:review` | Read PRD + tasks, write a review DAG, dispatch two reviewer types, synthesise findings |
 | `pdd:explain` | Explain a plan to a non-engineer without inventing claims |
 | `pdd:study` | Companion: one read-only subagent per workspace member or package root reconstructs every business branch, its trigger and its selection path, and writes the result as a per-directory `AGENTS.md`; the main agent re-resolves every citation and indexes them all in the root `AGENTS.md` |
+| `pdd:archive` | Companion: subagents read at most three plans each (any era, any format) and return decision records with the rejected alternative and the quoted reason; the main agent draws every era and every decision in `docs/history/`, then deletes the summarised plans — recoverable from the commits the index names |
 
 ```
 skill_view("pdd:decompose")
@@ -78,6 +81,7 @@ skills/implement/      SKILL.md + references/ + scripts/mutate_check.py
 skills/review/         SKILL.md + references/
 skills/explain/        SKILL.md + assets/ + references/
 skills/study/          SKILL.md + assets/ + references/ + scripts/  (list_members, check_agents_md)
+skills/archive/        SKILL.md + assets/ + references/ + scripts/  (find_plans, check_history)
 ```
 
 ## Versioning
