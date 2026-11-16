@@ -1,6 +1,6 @@
 name: pdd
-version: 1.3.0
-description: Proposition-Driven Development — five bundled skills (pdd:plan, pdd:decompose, pdd:implement, pdd:review, pdd:explain) for business-first specs, four task classes and flow-level verification, plus pdd:study, which reconstructs a codebase's business branches into per-directory AGENTS.md files, and pdd:archive, which turns superseded plans into one history of decisions and eras and then deletes them.
+version: 1.4.0
+description: Proposition-Driven Development — five bundled skills (pdd:plan, pdd:decompose, pdd:implement, pdd:review, pdd:explain) for business-first specs, four task classes and flow-level verification, plus pdd:study, which reconstructs a codebase's business branches into per-directory AGENTS.md files and refreshes them from the diff when the tree moves, and pdd:archive, which turns superseded plans into one history of decisions and eras and then deletes them.
 author: Uniterra Solutions Ltd.
 license: MIT
 homepage: https://github.com/Uniterra-Solutions/pdd-software-development

@@ -60,6 +60,6 @@ flowchart TD
 ## Provenance
 
 - generated: `<40-char commit>` @ `<YYYY-MM-DD>`
-- by: `pdd:study` round `<n>`
+- by: `pdd:study` round `<n>`          <!-- a refresh writes: delta `<base8>..<head8>` -->
 - re-check: `python3 <plugin>/skills/study/scripts/check_agents_md.py <project_root>`
 <!-- study:end -->

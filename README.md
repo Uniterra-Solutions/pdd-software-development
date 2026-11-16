@@ -34,7 +34,7 @@ same-named skill on disk — call the qualified name:
 | `pdd:implement` | Dispatch the DAG batch by batch, accept each task by its class, merge the batch back into the recorded working branch, close its worktrees, stop on contradiction |
 | `pdd:review` | Read PRD + tasks, write a review DAG, dispatch two reviewer types, synthesise findings |
 | `pdd:explain` | Explain a plan to a non-engineer without inventing claims |
-| `pdd:study` | Companion: one read-only subagent per workspace member or package root reconstructs every business branch, its trigger and its selection path, and writes the result as a per-directory `AGENTS.md`; the main agent re-resolves every citation and indexes them all in the root `AGENTS.md` |
+| `pdd:study` | Companion: one read-only subagent per workspace member or package root reconstructs every business branch, its trigger and its selection path, and writes the result as a per-directory `AGENTS.md`; the main agent re-resolves every citation and indexes them all in the root `AGENTS.md`. When the knowledge base already exists it runs as a delta: every commit since each file's recorded commit is diffed, the changed paths are sorted by the unit that owns them, and one subagent per affected unit rewrites only the rows whose evidence moved |
 | `pdd:archive` | Companion: subagents read at most three plans each (any era, any format) and return decision records with the rejected alternative and the quoted reason; the main agent draws every era and every decision in `docs/history/`, then deletes the summarised plans — recoverable from the commits the index names |
 
 ```
@@ -65,7 +65,7 @@ architecture check), the two gates, and the costs the process accepts.
 
 - Hermes Agent with plugin support (`hermes plugins doctor .` should pass).
 - Python 3.10+ (the plugin itself has no third-party dependencies).
-- `pdd:implement/scripts/mutate_check.py` and the two `pdd:study` scripts need a working Python
+- `pdd:implement/scripts/mutate_check.py` and the three `pdd:study` scripts need a working Python
   interpreter and are invoked by the skills, not by the plugin loader.
 - `pdd:study --render` optionally shells out to `mmdc` or `npx @mermaid-js/mermaid-cli`; without one,
   the mermaid check falls back to a lint and says so.
@@ -80,7 +80,7 @@ skills/decompose/      SKILL.md + assets/ + references/
 skills/implement/      SKILL.md + references/ + scripts/mutate_check.py
 skills/review/         SKILL.md + references/
 skills/explain/        SKILL.md + assets/ + references/
-skills/study/          SKILL.md + assets/ + references/ + scripts/  (list_members, check_agents_md)
+skills/study/          SKILL.md + assets/ + references/ + scripts/  (list_members, check_agents_md, study_delta)
 skills/archive/        SKILL.md + assets/ + references/ + scripts/  (find_plans, check_history)
 ```
 

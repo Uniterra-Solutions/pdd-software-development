@@ -211,6 +211,14 @@ object of its own.
   in the place a maintainer would put it, or what the product is for. It tells you where the code changes
   behaviour and what makes each change fire — the ground truth that §3's typed acceptance, §4's class table and
   §5's flow models all assume someone already has.
+- **The second run is a diff, not a study.** Once the files exist, the question changes from "what does this do"
+  to "what does it do now that they do not say", and the only thing that answers it cheaply is the history the
+  provenance block already names. The base is therefore per file rather than per repository — files studied at
+  different times are stale by different amounts — and the classifier is one line of geometry: the deepest
+  recorded unit whose directory contains the changed path owns it. The rule that keeps a refresh honest is the
+  one that costs the most discipline: a row whose cited file ended the window unchanged is copied byte for
+  byte, so the diff of the knowledge base reads as the diff of the code. Without it a refresh is a rebuild with
+  a smaller diff, and a rebuild is how a map stops being evidence.
 
 `pdd:archive` is the same argument applied to the *past* instead of the present. A plan records a decision once;
 after two reversals the plan is worse than nothing, because it states a rule that no longer holds with an
@@ -222,5 +230,5 @@ older claim is one `git show` away, and the deletion commit names the decisions 
 
 ---
 
-*Applies to plugin `pdd` 1.3.0: `pdd:plan`, `pdd:decompose`, `pdd:implement`, `pdd:review`, `pdd:explain`, and the
+*Applies to plugin `pdd` 1.4.0: `pdd:plan`, `pdd:decompose`, `pdd:implement`, `pdd:review`, `pdd:explain`, and the
 companions `pdd:study` and `pdd:archive`.*

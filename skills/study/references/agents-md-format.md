@@ -130,3 +130,38 @@ Translating `Mode::Stream` into prose is how a citation stops being resolvable.
 - **Architecture claims nobody checks.** If a rule matters, cite the line that enforces it. If no line enforces
   it, it is an aspiration; say so in `Invariants` with `not enforced`, and let the reader decide.
 - **The whole branch table of a child.** That is what the child file is for.
+
+## 7. The delta write
+
+A refresh edits a block that already exists. The branch table is where the rules bite, in this order:
+
+| What the diff shows | What happens to the row |
+| --- | --- |
+| a cited line moved, predicate unchanged | same id, new `site`, trigger re-quoted from the new line |
+| the predicate changed | same id, new trigger, behaviour re-read against the new arm |
+| the branch is gone | the row is deleted, its id retired and named in the report; ids are never renumbered |
+| a new branch | the next free id; nothing else renumbered |
+| a new entry point | a new row set and its own graph; the existing graphs are left as they are |
+| nothing under the unit moved | the block is not touched; only the provenance line changes |
+
+Two write rules follow from that:
+
+- **Preservation.** A row whose cited file ended the window unchanged is copied byte for byte — id, cells,
+  spelling, notes. Rewording it is a claim that the code changed, and the diff says it did not.
+  `scripts/study_delta.py --verify` compares against the committed version and fails when such a row moved or
+  vanished.
+- **Provenance.** `generated:` keeps its shape, because that is what the checker reads; the refresh records
+  where it came from on the next line:
+
+```markdown
+- generated: `<head sha>` @ `<YYYY-MM-DD>`
+- by: `pdd:study delta <base8>..<head8>`
+- re-check: `python3 <plugin>/skills/study/scripts/check_agents_md.py <project_root>`
+```
+
+`round <n>` belongs to a first study. A file refreshed twice carries the latest base, and the chain of earlier
+bases lives in `git log -p -- <unit>/AGENTS.md`, which is where a reader looking for history should end up.
+
+The block is still generated, so replacing it wholesale is not a violation in itself — the content is what
+must not move. The distinction matters because a human merges this file: a diff of six rows is reviewable, a
+regenerated block is not, and the second one hides the sentence that actually changed.

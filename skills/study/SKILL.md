@@ -1,7 +1,7 @@
 ---
 name: study
 description: "Use when a repo's business branches must become AGENTS.md."
-version: 1.1.0
+version: 1.2.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -29,6 +29,11 @@ down the trigger for each. The main agent accepts nothing on a self-report — i
 <member>/<package_root>/<deeper>/AGENTS.md      ← round 3, until no package root is left
 ```
 
+The second run is not a rebuild. When the files already exist, the skill runs as a **delta**: it takes
+every commit since each file's own recorded commit, sorts the changed paths by the unit that owns them,
+and dispatches one subagent per affected unit, which rewrites only the rows whose evidence moved. A
+first study is Workflow A; a refresh is Workflow B.
+
 ## Definitions
 
 | Term | Meaning |
@@ -38,11 +43,14 @@ down the trigger for each. The main agent accepts nothing on a self-report — i
 | **business branch** | A decision whose outcome the caller can observe: a different response, a different side effect, a different on-disk artefact, a different failure. Not every `if` — §1 of `references/branch-inventory.md` is the test. |
 | **selection path** | The ordered conjunction of predicates that must hold for one entry point to reach one branch. Quoting those predicates is what makes a branch row decidable, and drawing them is what the mermaid graph is for. |
 | **trigger** | The predicate in code, quoted verbatim with `file:line`, plus any config key and default that participates. "When the user asks for a stream" is not a trigger; "`if req.mode == Mode::Stream` at `handlers.rs:88`, `default = Mode::Batch` at `config.rs:31`" is. |
+| **delta** | A refresh of a knowledge base that already exists: every commit since each file's own recorded commit, classified by the unit that owns each changed path, with only the rows whose evidence moved rewritten. Workflow B. |
 
 ## When to use
 
 - A repo, a monorepo or an unfamiliar member must be understood well enough that an agent can change it
   without guessing which path a request takes.
+- The knowledge base already exists and the tree has moved since: Workflow B re-derives the rows the diff
+  touches and leaves every other row verbatim.
 - A branch inventory is wanted as evidence: what the code does today, quoted, before a plan rewrites it.
 - Onboarding documentation is wanted that survives re-generation (`pdd:study` re-runs replace only its own
   marked block, never human-written text).
@@ -57,8 +65,11 @@ down the trigger for each. The main agent accepts nothing on a self-report — i
   read-only command exists to confirm one (`--help`, a route table dump, a test that names its cases).
 - Git is available: the provenance block records the commit the study was made from, and re-running needs to
   know whether the tree moved.
+- In delta mode, the history from each file's recorded commit must still be reachable
+  (`git merge-base --is-ancestor <base> HEAD`). A shallow clone or rewritten history is not a diff question:
+  those units fall back to Workflow A and the report says which and why.
 
-## Workflow
+## Workflow A — first study
 
 ### 0. Recon: enumerate members and package roots (main agent, cheap)
 
@@ -159,6 +170,87 @@ Two rules make the index useful rather than decorative:
 - **the index is generated from `git ls-files`, not from memory.** `scripts/check_agents_md.py --root-only`
   fails when an `AGENTS.md` exists that the root index does not name, or names one that does not exist.
 
+## Workflow B — delta refresh (the knowledge base already exists)
+
+Entry condition: `AGENTS.md` files that carry a study block and a resolvable `generated:` commit. The
+question is no longer "what does this repository do" but "what does it do now that those files do not
+say", and it is answered with one diff per unit instead of one study per unit. §1–§11 of
+`references/delta-refresh.md` is the procedure in full; the steps below are the dispatch.
+
+### 5. Delta recon: the ledger is the refresh's round plan
+
+`python3 scripts/study_delta.py <project_root>` prints one row per recorded unit — `unit`, the `base` its
+provenance names, the number of commits since, the number of touched paths, and a `status` — then the
+commits and touched paths of every unit that moved, the changed paths no unit claims, the knowledge-base
+files that are gone from disk, and the members that have no `AGENTS.md` yet.
+
+**The base is the file's own provenance commit.** Files studied at different times are stale in different
+amounts; a repository-wide base either re-dispatches units whose claims are still true or skips units that
+moved after their own base.
+
+**Two diffs, because they answer two questions.** `touched` is every path named by any commit in
+`base..HEAD` plus the working tree; `net` is the base against the working tree. Dispatch reads `touched`
+— a handler added in one commit and deleted in the next is still work the inventory predates. Row
+preservation reads `net` — a branch renamed twice and renamed back allows no row to be rewritten. The
+script prints `touched` and checks with `net`.
+
+Read the table before dispatching. It decides how many subagents there are, and a unit that is `current`
+gets none: a rewrite whose content does not change buries the drift that does.
+
+### 6. Classify every touched path: the deepest recorded unit owns it
+
+`crates/api/src/server/handlers.rs` belongs to `crates/api/src/server`, not to `crates/api`, even though
+the parent's directory contains it. Two exceptions keep the rule honest:
+
+- a parent is refreshed when a file **it cites itself** moved, even inside a child's tree — the script
+  reports those as `also cites, and it moved`. A handoff row cites a line in the child's directory.
+- a path under no unit and under no discovered member is the **root bucket**: the main agent's own work,
+  because the root index is its artefact.
+
+| Bucket | Test | Who acts |
+| --- | --- | --- |
+| refresh | path under a recorded unit, or cited by one | one subagent for that unit |
+| new | path under a member with a manifest and no `AGENTS.md` | one subagent, round-1 brief (§1) |
+| retire | an `AGENTS.md` is gone and its directory too | the main agent edits the root index |
+| root | path named by no unit | the main agent: root index, or nothing |
+
+`missing-file` — an `AGENTS.md` gone while its directory stands — is not a retirement. It is a directory
+that is now unstudied, and it is reported, not edited around.
+
+### 7. Dispatch one subagent per affected unit
+
+The delta brief is `references/subagent-brief.md` §5: the round-1 fields plus `base: <sha>`, the unit's
+touched paths, and the diff-scoped obligations. In waves of about eight if there are more, deepest units
+first, so a parent's brief names a child that already exists.
+
+The obligations that make a refresh checkable rather than a rewrite:
+
+- **read the diff before the code** — `git log -p <base>..HEAD -- <unit>` then the files it names; the
+  diff says where to look, and reading the whole unit again is how rows get silently re-derived;
+- **every row whose cited file ended the window unchanged is copied verbatim** — id, cells, spelling;
+- **ids are stable**: a new branch takes the next free id, an existing id is never renumbered, and a
+  branch that no longer exists is removed and named in the report, its id retired and not reused;
+- **provenance moves to HEAD** — `generated: <sha> @ <date>` stays the line `check_agents_md.py` reads,
+  plus `by: pdd:study delta <base8>..<head8>` — even when no row changed, because that commit is the
+  record that someone looked;
+- **the sections nobody touched are not rewritten**, so the diff of the knowledge base reads as the diff
+  of the code.
+
+A `new` unit gets the round-1 brief, not this one: there is nothing to diff against.
+
+### 8. Delta acceptance: nothing stale, no row lost
+
+```
+python3 scripts/study_delta.py <project_root> --verify
+python3 scripts/check_agents_md.py <project_root> --stale
+```
+
+`--verify` errors when a file was not refreshed although its unit moved, when a row whose cited file ended
+the window unchanged came back altered or missing, and when a knowledge-base file disappeared while the
+root index still names it. It compares against the **committed** version, so it runs before the refresh is
+committed: one commit per unit after it passes, `<unit>: study delta <base8>..<head8> — +<n> rows, ~<m>
+updated, -<k> retired`, which is the durable record of what was read.
+
 ## Acceptance
 
 Mechanical (`scripts/check_agents_md.py <project_root>`, exit 0):
@@ -185,6 +277,18 @@ Judgement (read by the main agent):
 - [ ] the root index names every file, and no sentence in it restates a child's content;
 - [ ] `git status --short` shows only added `AGENTS.md` files — production code untouched.
 
+Delta refresh adds two mechanical checks (`scripts/study_delta.py <project_root> --verify`, exit 0) and
+four judgement items:
+
+- [ ] no file is stale: its provenance commit is HEAD, or no commit since it touches the unit;
+- [ ] every row whose cited file ended the window unchanged is byte-identical to the committed version,
+      and every row that changed is explained by a commit in its unit's ledger;
+- [ ] no knowledge-base file is gone from disk without the root index dropping it — and a `missing-file`
+      (the directory still stands) is reported, not edited around;
+- [ ] the unit ledger's four buckets account for every touched path: refresh dispatched, new studied,
+      retired indexed, root handled;
+- [ ] a row that was dropped names the branch that disappeared, and no id was renumbered or reused.
+
 ## Decision rules
 
 | Situation | Rule | Reason |
@@ -195,7 +299,12 @@ Judgement (read by the main agent):
 | An existing `AGENTS.md` / `CLAUDE.md` is present | Study writes only its marked block; human text is preserved verbatim above it; a conflicting human rule is reported, never edited | Overwriting onboarding notes destroys the one part of the file a human maintained |
 | A branch's trigger cannot be resolved | Record `trigger: unknown` plus the searches performed, and report it | A guessed trigger is worse than a gap: it reads as evidence and gets used |
 | The tree has one member | Still one subagent, still the root index | The protocol is what makes the output checkable; skipping it for a small repo gives an unverified file |
-| The study is re-run after the code moved | Re-dispatch only members whose diff touches them (`git diff --name-only <recorded-commit>..HEAD`), replace only the marked block | A full re-run rewrites files whose claims are still true and buries the real drift |
+| The tree moved under an existing knowledge base | Run Workflow B: `scripts/study_delta.py` decides the dispatch, one subagent per affected unit, rows with unchanged evidence copied verbatim | A full re-run rewrites files whose claims are still true, and the real drift drowns in the churn |
+| A unit's diff is one line | Still its own subagent; its deliverable may be a provenance bump and no row change | "The rows still hold" is a finding, and it must be attributable to a reader |
+| A unit's own `AGENTS.md` is the only file that changed | Not a change: the ledger ignores the file it describes | Counting the map as the territory re-dispatches every unit after every study |
+| Two units cite the same moved file | The deepest recorded unit owns the row; the shallower one only re-resolves its citation | Two owners of one fact is how two files come to disagree |
+| A unit directory was renamed | `git mv <old>/AGENTS.md <new>/AGENTS.md`, refresh, update the root index in the same commit | A copy loses the provenance chain and `git log --follow` stops at it |
+| The recorded base is not an ancestor of HEAD | Re-study that unit as Workflow A, and record why | A diff against a commit that is no longer an ancestor is fiction |
 
 ## Pitfalls
 
@@ -219,6 +328,19 @@ Judgement (read by the main agent):
   edit, silent divergence.
 - **Claims with no commit.** A file whose provenance block is absent cannot be told apart from one written
   against a tree that no longer exists.
+- **A delta that rebuilds the file.** A subagent re-reads the unit and rewrites the whole block, so rows the
+  diff never touched disappear quietly and the knowledge base's own diff shows churn no code change explains
+  → rows whose cited file ended the window unchanged are copied verbatim, and `--verify` fails when they are
+  not.
+- **A net diff read as the whole history.** A branch added in one commit and deleted in the next leaves no
+  trace in `git diff base..HEAD`, so the unit looks untouched → dispatch on `touched`, verify preservation
+  on `net`.
+- **One subagent for the whole delta.** A wrong row no longer names a directory, so the repair becomes an
+  investigation instead of a re-dispatch.
+- **Provenance bumped without reading the diff.** `--stale` goes quiet, the file looks maintained, and the
+  next reader trusts claims nobody checked.
+- **Rows renumbered after a retirement.** Every mermaid terminal and every quoted id downstream now points
+  at the wrong branch, and nothing errors.
 
 ## Verification
 
@@ -228,6 +350,8 @@ Judgement (read by the main agent):
       report;
 - [ ] the root index names every file in the tree and restates none of them;
 - [ ] no production file, test or fixture was modified: `git status --short` lists only added `AGENTS.md`.
+- [ ] in a delta, `scripts/study_delta.py <project_root> --verify` exits 0 before each unit's commit, and
+      the ledger's touched paths are all accounted for.
 
 > Cross-skill references name the sibling skill and the file separately:
 > `skill_view("pdd:decompose", "references/task-splitting.md")`. Every sibling is registered under this
@@ -244,8 +368,14 @@ Judgement (read by the main agent):
 - `references/mermaid-templates.md` — rendered, copy-paste sources for the ten shapes that are worth drawing.
 - `references/mermaid-selection-path.md` — graph shape, node and edge conventions, size discipline, worked
   example, validation.
-- `references/agents-md-format.md` — required sections, the marked-block merge rule, provenance, nesting.
-- `references/subagent-brief.md` — the brief the main agent sends, and the report it demands back.
+- `references/agents-md-format.md` — required sections, the marked-block merge rule, provenance, nesting,
+  and the row lifecycle a delta obeys.
+- `references/delta-refresh.md` — the refresh in full: two diffs, per-file bases, the deepest-owner
+  classifier, the four task kinds, degenerate histories, and the anti-patterns.
+- `references/subagent-brief.md` — the brief the main agent sends, and the report it demands back; §5 is the
+  delta brief.
 - `assets/AGENTS.template.md` — the file template, markers included.
 - `scripts/list_members.py` — recon: members, package roots, depths, entry-point candidates.
+- `scripts/study_delta.py` — delta recon (`unit`/`base`/`commits`/`files`/`status`) and delta acceptance
+  (`--verify`: staleness, row preservation, deleted knowledge-base files).
 - `scripts/check_agents_md.py` — acceptance: citations resolve, table shape, provenance, index coverage.
