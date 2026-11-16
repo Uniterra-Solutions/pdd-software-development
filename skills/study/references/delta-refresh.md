@@ -108,10 +108,44 @@ The last line is the one that surprises people: a refresh with no row change is 
 and its only output is a provenance line. That is still worth a commit — it is the record that someone
 looked.
 
+### 6b. A row cites more than its site, and the auxiliary citation died
+
+A row can carry several `path:line` tokens: the `site` cell, the trigger, a `notes` cross-reference, an
+example. Preservation keys on **the site cell's file**. So when the site's file ends the window unchanged
+but a *secondary* citation in the same row points at a file that moved, the two gates contradict each other:
+leaving the row alone reds `check_agents_md.py` (`cited file does not exist` / line out of range), and
+repairing it reds `study_delta.py --verify` (`rewritten although their cited file ended unchanged`). A
+refresh that hits this has to guess which gate its author cared about, and both guesses are defensible —
+which means the rule is wrong, not the refresh.
+
+**Preservation protects the claim, not a dead pointer.** The claim is `id`, behaviour, trigger and the
+`site` cell. A `path:line` token outside the site cell is a citation, and a citation that no longer
+resolves is repaired, with the row otherwise untouched:
+
+- the site cell stays **byte-identical**, and so do the behaviour and trigger cells;
+- every non-citation word stays byte-identical;
+- the repair is listed in the report (`auxiliary repaired: {id}: old → new, the line that proves it`);
+- `study_delta.py --verify` normalises off-site citations before comparing, so this repair passes. It
+  still fails a row whose site cell moved while its file did not, or whose wording changed.
+
+Verify the new line by its **text**, never by arithmetic on the old offset: `git show {base}:{file} | sed -n
+'{n}p'` to get the old line, then `grep -n` for that same text in the new tree. The one case this cannot
+cover is a pointer that is in range but wrong (a function pushed 49 lines down by an unrelated insertion) —
+`check_agents_md.py` cannot see it either, so the row's own quoted predicate is the evidence, and the report
+says it was re-read.
+
 ## 7. The brief
 
 `subagent-brief.md` §5 is the delta brief: the same fields, plus `base: {sha}`, the touched-path list
-for that unit, and the diff-scoped obligations. It never gets the whole diff of the repository — a
+for that unit, and the diff-scoped obligations.
+
+The touched-path list is a **hint, not the record**. It is derived by a script from a log range, and it can
+silently come out short — one run lost the list for two units while their `files` count was non-zero. Every
+brief therefore names the authoritative command (`git log -p {base}..HEAD -- {unit}`) as step 1 of the read
+order, and a child that finds the list disagreeing with the diff reports it and works from the diff. That is
+the recovery path that worked; a child that trusts the list does nothing and says the unit was untouched.
+
+It never gets the whole diff of the repository — a
 subagent holding other units' diffs starts reasoning about them, and its report then describes work it
 was not given.
 

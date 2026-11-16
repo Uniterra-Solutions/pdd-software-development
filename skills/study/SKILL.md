@@ -1,7 +1,7 @@
 ---
 name: study
 description: "Use when a repo's business branches must become AGENTS.md."
-version: 1.2.1
+version: 1.3.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -332,6 +332,15 @@ four judgement items:
   diff never touched disappear quietly and the knowledge base's own diff shows churn no code change explains
   → rows whose cited file ended the window unchanged are copied verbatim, and `--verify` fails when they are
   not.
+- **The checker run against a unit directory, not the repository root.** `check_agents_md.py crates/x` makes
+  that directory the `root` for citation resolution, so every cross-member citation (`crates/y/src/...`,
+  `scripts/...`) reports "cited file does not exist" — 9 clean units looked like 9 broken ones this way. Run it
+  as `check_agents_md.py .` from the repo root and attribute each `ERROR` line to the `=== {path} ===` header
+  above it.
+- **A preserved row carrying a dead auxiliary citation.** Preservation keys on the site cell's file, so a
+  secondary `path:line` in the same row can rot while the row is frozen, and the two gates then contradict each
+  other → `delta-refresh.md` §6b: repair the citation, freeze the site cell and the wording, name the repair in
+  the report. `study_delta.py --verify` normalises off-site citations so the repair passes.
 - **A net diff read as the whole history.** A branch added in one commit and deleted in the next leaves no
   trace in `git diff base..HEAD`, so the unit looks untouched → dispatch on `touched`, verify preservation
   on `net`.
@@ -339,6 +348,11 @@ four judgement items:
   investigation instead of a re-dispatch.
 - **Provenance bumped without reading the diff.** `--stale` goes quiet, the file looks maintained, and the
   next reader trusts claims nobody checked.
+- **A graph nobody rendered.** A stray `)` in a node label is invisible to `check_agents_md.py` (citations and
+  table shape are fine) and to `--verify` (the row did not move), and the subagent that wrote it reported
+  "lint only — no chromium here". As root, chromium needs `--no-sandbox`, so the naive `npx mermaid-cli`
+  invocation fails in a way that reads as "rendering unavailable" → `scripts/render_graphs.py` carries the
+  config and must be the last gate of every round.
 - **Rows renumbered after a retirement.** Every mermaid terminal and every quoted id downstream now points
   at the wrong branch, and nothing errors.
 
@@ -351,7 +365,10 @@ four judgement items:
 - [ ] the root index names every file in the tree and restates none of them;
 - [ ] no production file, test or fixture was modified: `git status --short` lists only added `AGENTS.md`.
 - [ ] in a delta, `scripts/study_delta.py {project_root} --verify` exits 0 before each unit's commit, and
-      the ledger's touched paths are all accounted for.
+      the ledger's touched paths are all accounted for;
+- [ ] `scripts/render_graphs.py {project_root}` reports `failed 0`. A subagent that could not render says so
+      and the main agent renders: "lint-verified only" is not a verification, because mermaid reports a stray
+      parenthesis as a lexical error and every other gate in this skill passes straight over it.
 
 > Cross-skill references name the sibling skill and the file separately:
 > `skill_view("pdd:decompose", "references/task-splitting.md")`. Every sibling is registered under this
@@ -379,3 +396,5 @@ four judgement items:
 - `scripts/study_delta.py` — delta recon (`unit`/`base`/`commits`/`files`/`status`) and delta acceptance
   (`--verify`: staleness, row preservation, deleted knowledge-base files).
 - `scripts/check_agents_md.py` — acceptance: citations resolve, table shape, provenance, index coverage.
+- `scripts/render_graphs.py` — the last gate: every mermaid block in the study files parses and renders.
+  It carries the puppeteer config, so it works as root where a bare `npx mermaid-cli` does not.

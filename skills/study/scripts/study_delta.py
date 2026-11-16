@@ -127,9 +127,27 @@ def norm(line: str) -> str:
     return re.sub(r"\s+", " ", line.strip())
 
 
-def rows(block: str, root: str = "", unit: str = ".") -> dict[str, tuple[str, str]]:
-    """id -> (normalised row text, repo-relative cited file or '')."""
-    out: dict[str, tuple[str, str]] = {}
+SITE_CELL = 4          # `| id | behaviour | consequence | trigger | site | example | note |`
+
+
+def norm_offsite(line: str) -> str:
+    """The row with every `path:line` token OUTSIDE the site cell replaced by a placeholder.
+
+    Preservation protects the claim -- behaviour, trigger, site -- not a dead pointer buried
+    in a note. Without this, a row whose site file did not move cannot have a secondary
+    citation repaired, and the two gates contradict each other: `--verify` calls the repair a
+    rewrite, `check_agents_md.py` calls the unrepaired citation a missing file.
+    """
+    cells = [c.strip() for c in line.strip().strip("|").split("|")]
+    for i, cell in enumerate(cells):
+        if i != SITE_CELL:
+            cells[i] = re.sub(r"[\w./-]+\.rs:\d+(?:-\d+)?", "\u27e8cite\u27e9", cell)
+    return norm(" | ".join(cells))
+
+
+def rows(block: str, root: str = "", unit: str = ".") -> dict[str, tuple[str, str, str, str]]:
+    """id -> (normalised row text, repo-relative cited file, off-site-normalised row, site cell)."""
+    out: dict[str, tuple[str, str, str, str]] = {}
     for line in block.splitlines():
         m = BRANCH_ROW.match(line)
         if not m:
@@ -137,7 +155,8 @@ def rows(block: str, root: str = "", unit: str = ".") -> dict[str, tuple[str, st
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
         site = cells[4] if len(cells) > 4 else ""
         cite = CITE.search(site)
-        out[m.group(1)] = (norm(line), resolve_cite(cite.group(1), root, unit) if cite else "")
+        out[m.group(1)] = (norm(line), resolve_cite(cite.group(1), root, unit) if cite else "",
+                           norm_offsite(line), norm(site))
     return out
 
 
@@ -395,13 +414,15 @@ def verify(root: str) -> int:
         new_rows = rows(work, root, unit)
         dropped: list[str] = []
         modified: list[str] = []
-        for bid, (text, site) in old_rows.items():
+        for bid, (text, site, offsite, site_cell) in old_rows.items():
             if site and ch.moved(site):
                 continue                       # its evidence moved: the row may change
             got = new_rows.get(bid)
             if got is None:
                 dropped.append(bid)
-            elif got[0] != text:
+            elif got[0] != text and (got[2] != offsite or got[3] != site_cell):
+                # a `path:line` token outside the site cell may be repaired; the site cell,
+                # the behaviour and the trigger stay frozen (see norm_offsite)
                 modified.append(bid)
         if dropped:
             errors.append(f"{rel}: row(s) dropped although their cited file ended unchanged: "

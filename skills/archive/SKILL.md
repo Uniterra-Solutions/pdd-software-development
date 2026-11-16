@@ -1,7 +1,7 @@
 ---
 name: archive
 description: "Use when old plans must become one history document."
-version: 1.0.1
+version: 1.0.2
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -186,6 +186,10 @@ Judgement (read by the main agent):
 
 ## Pitfalls
 
+- **The plan holds a file a gate reads.** The reference sweep greps documents, so a roster or census `.tsv` that a
+  checker script parses looks like plan-shaped history and gets deleted with the plan -- the checker then crashes on
+  a missing file, or measures nothing. Sweep every tracked file type, and move any file a non-plan tool reads to a
+  stable home beside that tool before the deletion (`references/deletion.md` section 1.3).
 - **A summary that is a chronology of tasks.** "T01 built the parser" is a work log, not history → the register
   holds choices and their rejected alternatives; tasks are evidence for them.
 - **Reasons reconstructed from the code.** Reading the implementation and inferring why it looks like that

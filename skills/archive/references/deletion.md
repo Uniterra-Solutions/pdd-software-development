@@ -12,14 +12,24 @@ only evidence for its own claims.
    reason, with zero errors. A plan with no record is summarised first, or excluded and named.
 2. **Conflicts collapsed.** No subject has two `accepted` rows. The newest claim is the row; the older one is a
    pointer inside it (`references/decision-record.md` §4).
-3. **Reference sweep.** No live document outside `docs/history/` still points at the plan:
+3. **Reference sweep.** No live file outside `docs/history/` still points at the plan -- sweep **every tracked
+   file type**, not only `*.md`:
 
    ```
-   git grep -n --fixed-strings '<plan path>' -- '*.md' ':!docs/history/*'
+   git grep -n --fixed-strings '<plan path>' -- . ':!docs/history/*'
    ```
 
-   Each hit is a broken link waiting to happen. Rewrite it to `docs/history/decisions.md#<subject>` (or the era
-   file), and put the rewrite in the same commit as the deletion so the link never dangles in a checkout.
+   Then classify every hit, because three classes need different handling:
+
+   | hit | what it is | what to do |
+   | --- | --- | --- |
+   | a document pointing a reader at the plan | a broken link waiting to happen | rewrite it to `docs/history/decisions.md` (or the era file) in the same commit as the deletion |
+   | **a script or config that READS a file inside the plan** | not a link -- a dependency: the tool breaks the moment the plan is gone | move the file out of the plan to a stable home beside its consumer, repoint the reader, commit that move **before** the deletion, then re-run the consumer and record its output |
+   | a captured command output inside another plan | a transcript, not a pointer | rewrite the path token to where the file lives today and add an editorial note naming which words were rewritten; never silently falsify a transcript |
+
+   The second class is the one that bites: a roster, a census or a `pins/` file that a gate script parses looks
+   like a plan artefact and reads like history, but deleting it turns a green check into a crash. A file a checker
+   reads on every run is a production input, and production inputs do not live inside plans.
 4. **Tracked.** `git ls-files --error-unmatch <plan path>` succeeds. An untracked plan is **never** deleted —
    git cannot recover it, and the promise "git has it" would be false. Report it and leave it on disk.
 5. **Index row written.** The plan's row in `docs/history/index.md` already carries the decisions it produced.

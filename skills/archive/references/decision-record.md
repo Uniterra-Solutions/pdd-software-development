@@ -23,6 +23,21 @@ Two consequences worth stating, because they are where the register bloats:
 - **A confirmation is not a decision.** Most plans confirm an approach and change nothing. Those get a timeline
   entry and no `D` row.
 
+## 1b. Pasting a subagent's paste-ready blocks — stop at the section, not at the next id
+
+A summary pass returns blocks as `### D557 — …` followed by one report layout: the records, then the register rows,
+then the era, then the conflicts. A parser that splits on `\n### (D\d+) — ` and reads fields to the next match
+**swallows every section after the LAST record into that record**, because the last block has no next `### ` to stop
+at. The damage is silent and survives a field-shape check: the fields are all legal, they are just the wrong ones —
+a decision gains a `before`/`after`/`driven by`, inherits the era's `cost accepted`, and can take a *date* from the
+era header. It cannot be seen by reading the row; it shows up only when a block is read whole.
+
+Two rules:
+
+- cut each block at `\n### ` **or** at `\n## ` — whichever comes first — before parsing fields;
+- after writing the era files, assert that no `###` block contains `before`, `after` or `driven by`, and that exactly
+  one `date` appears per block. That check is three lines and it catches the whole class.
+
 ## 2. The record
 
 ```markdown
