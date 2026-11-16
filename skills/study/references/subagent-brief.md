@@ -10,24 +10,24 @@ acceptance reads the other.
 role:        code cartographer. Read-only except for the ONE AGENTS.md you own.
 project:     <project root>                      ← read-only
 your unit:   <member or package_root path>       ← the whole of your assignment
-your output: <unit>/AGENTS.md                    ← the only file you may create or edit
-rules:       <plugin>/skills/study/references/branch-inventory.md    ← what a row must contain
-             <plugin>/skills/study/references/branch-survey.md         ← how to find them fast
-             <plugin>/skills/study/references/diagram-choice.md        ← whether and what to draw
-             <plugin>/skills/study/references/mermaid-selection-path.md
-             <plugin>/skills/study/references/mermaid-templates.md     ← copy-paste sources
-             <plugin>/skills/study/references/agents-md-format.md
-template:    <plugin>/skills/study/assets/AGENTS.template.md
+your output: {unit}/AGENTS.md                    ← the only file you may create or edit
+rules:       {plugin}/skills/study/references/branch-inventory.md    ← what a row must contain
+             {plugin}/skills/study/references/branch-survey.md         ← how to find them fast
+             {plugin}/skills/study/references/diagram-choice.md        ← whether and what to draw
+             {plugin}/skills/study/references/mermaid-selection-path.md
+             {plugin}/skills/study/references/mermaid-templates.md     ← copy-paste sources
+             {plugin}/skills/study/references/agents-md-format.md
+template:    {plugin}/skills/study/assets/AGENTS.template.md
 parent file: <path, round ≥ 2 only>              ← read-only, your input
-recorded commit: <sha>                           ← the tree you are reading
+recorded commit: {sha}                           ← the tree you are reading
 
 deliverables, in your report and in the file:
   1. branch inventory — every business branch of this unit's entry points, in the table schema
   2. selection paths   — one mermaid flowchart per entry point
   3. AGENTS.md         — the file, in the template's shape, inside the study markers
 
-prohibited:  editing production code, tests, fixtures or config; creating a second AGENTS.md;
-             writing any AGENTS.md outside your owned path; running commands that mutate the tree
+prohibited:  editing production code, tests, fixtures or config; any second AGENTS.md;
+             any AGENTS.md outside your owned path; commands that mutate the tree
              (no cargo build --release, no test that writes fixtures, no formatters); git commit,
              push, merge, branch, stash, checkout
 stop when:   an entry point cannot be identified; a trigger cannot be resolved; a parent claim
@@ -46,7 +46,7 @@ study was edited by someone else, and the finding no longer describes what is on
 ## 2. The report
 
 ```
-unit:            <path>
+unit:            {path}
 entries:         <n> entry points, listed
 branches:        <n> rows (B01..Bnn); excluded <n> conditionals, with the reason for each
 unknown triggers: <n>, each with the searches performed
@@ -106,20 +106,20 @@ about what may change.
 role:            code cartographer, refreshing an existing map. Read-only except for the ONE AGENTS.md you own.
 project:         <project root>                      ← read-only
 your unit:       <member or package_root path>       ← the whole of your assignment
-your output:     <unit>/AGENTS.md                    ← the only file you may edit
+your output:     {unit}/AGENTS.md                    ← the only file you may edit
 base:            <40-char commit>                    ← the `generated:` line the file carries now
 touched:         <the unit's paths from study_delta.py, one per line>
-current file:    <unit>/AGENTS.md                     ← your input, not a draft to replace
-rules:           <plugin>/skills/study/references/branch-inventory.md
-                 <plugin>/skills/study/references/branch-survey.md
-                 <plugin>/skills/study/references/diagram-choice.md
-                 <plugin>/skills/study/references/mermaid-selection-path.md
-                 <plugin>/skills/study/references/mermaid-templates.md
-                 <plugin>/skills/study/references/agents-md-format.md   ← §7 is your write rule
-                 <plugin>/skills/study/references/delta-refresh.md      ← §6 is the row life cycle
+current file:    {unit}/AGENTS.md                     ← your input, not a draft to replace
+rules:           {plugin}/skills/study/references/branch-inventory.md
+                 {plugin}/skills/study/references/branch-survey.md
+                 {plugin}/skills/study/references/diagram-choice.md
+                 {plugin}/skills/study/references/mermaid-selection-path.md
+                 {plugin}/skills/study/references/mermaid-templates.md
+                 {plugin}/skills/study/references/agents-md-format.md   ← §7 is your write rule
+                 {plugin}/skills/study/references/delta-refresh.md      ← §6 is the row life cycle
 
 read in this order:
-  1. `git log -p <base>..HEAD -- <unit>`   — the diff says where to look
+  1. `git log -p {base}..HEAD -- {unit}`   — the diff says where to look
   2. the files that diff names             — only those, only around the hunks
   3. the current AGENTS.md                 — the rows you must carry forward verbatim
 
@@ -127,7 +127,7 @@ deliverables:
   1. rows whose cited file ended the window unchanged: copied verbatim — id, cells, spelling
   2. rows whose evidence moved: same id, trigger re-quoted from the new line, site updated, behaviour re-read
   3. new branch: the next free id; a branch that no longer exists: deleted and named in the report
-  4. provenance: `generated: <HEAD> @ <date>` plus `by: pdd:study delta <base8>..<head8>`
+  4. provenance: `generated: <HEAD> @ {date}` plus `by: pdd:study delta <base8>..<head8>`
   5. the selection-path graph updated where a predicate changed; untouched graphs left as they are
 
 prohibited:  renumbering ids; rewriting a row whose evidence did not move; re-deriving the unit from
@@ -141,13 +141,13 @@ report:      §6 below
 ## 6. The delta report
 
 ```
-unit:             <path>
+unit:             {path}
 base → head:      <base8> → <head8>  (<n> commits, <m> files touched)
 rows unchanged:   <n>  — ids …
-rows re-sited:    <n>  — <id>: <old site> → <new site>, predicate unchanged
-rows rewritten:   <n>  — <id>: <what changed in the predicate or the behaviour>
-rows added:       <n>  — <id>: trigger, site, the commit that introduced it
-rows retired:     <n>  — <id>: the evidence that no input reaches it any more
+rows re-sited:    <n>  — {id}: <old site> → <new site>, predicate unchanged
+rows rewritten:   <n>  — {id}: <what changed in the predicate or the behaviour>
+rows added:       <n>  — {id}: trigger, site, the commit that introduced it
+rows retired:     <n>  — {id}: the evidence that no input reaches it any more
 graph:            updated <n> block(s), untouched <n>
 sections changed: <Scope | Entry points | Invariants | Nested package roots | none>
 provenance:       written, <base8>..<head8>
@@ -160,5 +160,5 @@ touched anything else: no
 than the tree, and a report without it cannot be told apart from a rebuild — the two produce the same file
 and the same self-assessment.
 
-A refresh that changes no row still writes its report: `rows unchanged: <all>`, provenance bumped. That is a
+A refresh that changes no row still writes its report: `rows unchanged: {all}`, provenance bumped. That is a
 result, not a no-op, and the main agent records it in the commit message.

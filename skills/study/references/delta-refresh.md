@@ -6,7 +6,7 @@ question. It assumes the tree already carries `AGENTS.md` files written by this 
 
 ## 1. What counts as a knowledge base
 
-One `AGENTS.md` with a `<!-- study:begin -->` block and a resolvable `generated: <commit> @ <date>`
+One `AGENTS.md` with a `<!-- study:begin -->` block and a resolvable `generated: {commit} @ {date}`
 line. The root index alone is not a knowledge base: it names files, it does not make claims about
 behaviour.
 
@@ -35,7 +35,7 @@ churn; a refresh that reads only `touched` rewrites rows whose evidence ended th
 ## 3. The base is the file's own provenance commit
 
 ```
-git show HEAD:<unit>/AGENTS.md   →   generated: <commit> @ <date>   →   base
+git show HEAD:{unit}/AGENTS.md   →   generated: {commit} @ {date}   →   base
 ```
 
 Not a repository-wide tag, not the commit the last study "ran" at. Files studied at different times
@@ -102,7 +102,7 @@ review quoting a row. So:
 | the branch is gone | the row is removed and **named in the report**; its id is retired, never reused |
 | a new branch | a new row with the next free id; existing ids are never renumbered |
 | a new entry point | a new row set plus its own mermaid graph; the old graph is kept as it was |
-| no change at all under the unit | the block is not rewritten; provenance still moves to HEAD, because "true at `<commit>`" is now a later commit |
+| no change at all under the unit | the block is not rewritten; provenance still moves to HEAD, because "true at `{commit}`" is now a later commit |
 
 The last line is the one that surprises people: a refresh with no row change is a legitimate outcome
 and its only output is a provenance line. That is still worth a commit — it is the record that someone
@@ -110,7 +110,7 @@ looked.
 
 ## 7. The brief
 
-`subagent-brief.md` §5 is the delta brief: the same fields, plus `base: <sha>`, the touched-path list
+`subagent-brief.md` §5 is the delta brief: the same fields, plus `base: {sha}`, the touched-path list
 for that unit, and the diff-scoped obligations. It never gets the whole diff of the repository — a
 subagent holding other units' diffs starts reasoning about them, and its report then describes work it
 was not given.
@@ -121,7 +121,7 @@ was not given.
 | --- | --- |
 | shallow clone / history rewritten | the recorded base may not be an ancestor. `git merge-base --is-ancestor` fails → re-study that unit as Workflow A and say so in the report |
 | the working tree is dirty | `net` includes the working tree, so a dirty tree is studied as it is. The report names it; the commit happens after |
-| a unit directory was renamed | `git mv <old>/AGENTS.md <new>/AGENTS.md`, refresh, update the root index in the same commit — a copy loses the provenance chain and `git log --follow` stops at the copy |
+| a unit directory was renamed | `git mv {old} {new}`, then refresh — the file travels with its directory — and update the root index in the same commit — a copy loses the provenance chain and `git log --follow` stops at the copy |
 | a unit was split in two | the old file is retired, both halves become `new` units. Do not try to distribute the rows by hand: two files, two studies |
 | two units merged into one | the survivor's file is refreshed and the retired file is deleted; the root index loses one row |
 | `AGENTS.md` was never committed | no committed version to compare against, so preservation is unverifiable — the verify step says so instead of passing silently |
@@ -130,8 +130,8 @@ was not given.
 ## 9. Acceptance
 
 ```
-python3 <plugin>/skills/study/scripts/study_delta.py <root> --verify     # rows, staleness, deletions
-python3 <plugin>/skills/study/scripts/check_agents_md.py <root> --stale  # citations, shape, index
+python3 {plugin}/skills/study/scripts/study_delta.py {root} --verify     # rows, staleness, deletions
+python3 {plugin}/skills/study/scripts/check_agents_md.py {root} --stale  # citations, shape, index
 ```
 
 The first checks three things the second cannot: that no file is stale, that a row whose cited file

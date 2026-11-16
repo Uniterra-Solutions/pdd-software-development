@@ -19,7 +19,7 @@ What this directory is responsible for, in one paragraph, in terms of what calle
 | Entry point | Invocation | Site |
 | --- | --- | --- |
 | HTTP `POST /v1/jobs` | `POST /v1/jobs` | `src/handlers.rs:41` |
-| CLI `serve` | `myapp serve --mode <mode>` | `src/main.rs:77` |
+| CLI `serve` | `myapp serve --mode {mode}` | `src/main.rs:77` |
 
 ## Branches
 
@@ -56,7 +56,7 @@ Or `None — this directory is a leaf; no deeper unit owns an entry point.`
 
 - generated: `<40-char commit>` @ `<YYYY-MM-DD>`
 - by: `pdd:study` round `<n>`
-- re-check: `python3 <plugin>/skills/study/scripts/check_agents_md.py <project_root>`
+- re-check: `python3 {plugin}/skills/study/scripts/check_agents_md.py {project_root}`
 <!-- study:end -->
 ```
 
@@ -79,11 +79,11 @@ destroys the only part with a maintainer. So:
   between them is the most valuable thing this skill can surface.
 
 Regeneration also replaces the provenance block, which is why the commit is inside the markers: the claim "this
-was true at `<commit>`" is a property of the generated block, not of the file.
+was true at `{commit}`" is a property of the generated block, not of the file.
 
 ## 3. Provenance and staleness
 
-- `generated: <commit> @ <date>` — the tree the study read. Without it a file cannot be distinguished from one
+- `generated: {commit} @ {date}` — the tree the study read. Without it a file cannot be distinguished from one
   written against code that no longer exists.
 - `by: pdd:study round <n>` — which round produced it, so a later reader knows whether a nested directory was
   ever studied.
@@ -92,7 +92,7 @@ was true at `<commit>`" is a property of the generated block, not of the file.
 Re-running after the code moved is a diff question, not a rebuild question:
 
 ```
-git diff --name-only <recorded-commit>..HEAD -- <member>/   # a member only re-runs if this is non-empty
+git diff --name-only <recorded-commit>..HEAD -- {member}/   # a member only re-runs if this is non-empty
 ```
 
 A full re-run rewrites files whose claims are still true, buries the real drift in noise, and replaces citations
@@ -111,7 +111,7 @@ the rows. A sentence in two files will drift, and the deeper file wins by proxim
 up following a rule the parent already retired.
 
 Where a branch belongs to a boundary rather than to one directory (a dispatch that hands off downward), the
-parent keeps the row with `delegates to <child>`, and the child keeps the rows for what happens inside. Both are
+parent keeps the row with `delegates to {child}`, and the child keeps the rows for what happens inside. Both are
 true, and neither is a copy of the other.
 
 ## 5. Language and verbatim identifiers
@@ -156,11 +156,11 @@ Two write rules follow from that:
 ```markdown
 - generated: `<head sha>` @ `<YYYY-MM-DD>`
 - by: `pdd:study delta <base8>..<head8>`
-- re-check: `python3 <plugin>/skills/study/scripts/check_agents_md.py <project_root>`
+- re-check: `python3 {plugin}/skills/study/scripts/check_agents_md.py {project_root}`
 ```
 
 `round <n>` belongs to a first study. A file refreshed twice carries the latest base, and the chain of earlier
-bases lives in `git log -p -- <unit>/AGENTS.md`, which is where a reader looking for history should end up.
+bases lives in `git log -p -- {unit}/AGENTS.md`, which is where a reader looking for history should end up.
 
 The block is still generated, so replacing it wholesale is not a violation in itself — the content is what
 must not move. The distinction matters because a human merges this file: a diff of six rows is reviewable, a

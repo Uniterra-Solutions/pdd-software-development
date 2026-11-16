@@ -35,7 +35,7 @@ Conventions, all of which the checker understands:
 | --- | --- |
 | entry point | stadium node `(["..."])`, the invocation a caller makes, not a function name |
 | predicate | rhombus `{"..."}`, the quoted predicate **plus its `file:line`** on a second line (`<br/>`) |
-| branch | rectangle `["B<k> <behaviour>"]`, the id matching the table row exactly |
+| branch | rectangle `["B<k> {behaviour}"]`, the id matching the table row exactly |
 | edge label | the predicate's outcome that walks this edge — `yes`, `no`, or the value (`"mode=stream"`) |
 | direction | `TD` (top-down) for a pipeline, `LR` when the chain is long and thin; one direction per file |
 

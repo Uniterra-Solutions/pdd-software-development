@@ -97,12 +97,12 @@ classDiagram
     +run() Result~Outcome~
   }
   class Mode {
-    <<enumeration>>
+    <{enumeration}>
     Stream
     Batch
   }
   class Outcome {
-    <<interface>>
+    <{interface}>
     +bytes() Vec~u8~
   }
   class StreamingOutcome
@@ -271,7 +271,7 @@ mermaid version it is using. Worth doing before committing beta syntax next to c
 | Symptom | Cause | Correct form |
 | --- | --- | --- |
 | `radar` fails outright | wrong type name and wrong value syntax | `radar-beta`, axes as `axis a["Label"], b["Label"]`, values as `curve c["Name"]{1,2,3}` |
-| `swimlanes` fails | there is no `lane` keyword | `swimlane-beta LR` plus one `subgraph <lane> … end` per lane |
+| `swimlanes` fails | there is no `lane` keyword | `swimlane-beta LR` plus one `subgraph {lane} … end` per lane |
 | `architecture-beta` node error | missing icon type or group membership | `service gw(server)[Gateway] in api`; edges need handles: `gw:R --> L:q` |
 | `requirementDiagram` arrow error | the verb must sit between the dashes | `b01_streaming - satisfies -> req_f_001` |
 | label clipped or parse error | `( ) [ ] { } : \|` unquoted inside a label | quote the whole label: `B01["B01 400 (too_large)"]`; `<br/>` works inside quotes |

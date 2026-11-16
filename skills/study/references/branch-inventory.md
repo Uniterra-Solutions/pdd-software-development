@@ -73,10 +73,10 @@ with 400", write it; if it is "silently treat the input as the first enum varian
 ## 5. Boundaries with other directories
 
 - **Cross-member**: a branch whose predicate reads a value produced or configured elsewhere is recorded with
-  `cross: <member>` and *not* duplicated. The member that owns the value owns the row; the other file links to
+  `cross: {member}` and *not* duplicated. The member that owns the value owns the row; the other file links to
   it. Two copies drift and then contradict each other inside one review.
 - **Nested package root**: if a branch's behaviour is implemented below the directory you are studying, record
-  the branch at the boundary (`delegates to <package_root>`, with the call site) and report the package root
+  the branch at the boundary (`delegates to {package_root}`, with the call site) and report the package root
   as a round-N candidate. You are mapping *this* directory's decisions; the child maps its own.
 - **Unreachable**: two flavours, and both are findings rather than prose. *Cannot* be reached (a feature flag
   the build never sets, an arm shadowed by an earlier one) → `unreachable`, routed to `pdd:decompose` as a

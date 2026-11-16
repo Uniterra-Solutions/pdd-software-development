@@ -1,14 +1,19 @@
 # pdd-software-development
 
 A Hermes plugin that ships **Proposition-Driven Development (PDD)** as five bundled skills, plus three
-companions that work on a repository before and after the plan: one maps what the code does today, the
-other retires the plans that no longer do.
+companions: one maps what the code does today, one retires the plans that no longer do, and one repairs
+the skills themselves when the process misfires.
 
 PDD is a business-first spec workflow: the PRD describes business logic and observable behaviour,
 decomposition yields four classes of task, and verification is modelled per business flow rather
 than per task. `pdd:study` reconstructs the branches a codebase already has, with citations, before
 anything is planned against them; `pdd:archive` turns a pile of superseded plans into one history of
 decisions and eras, then deletes the pile — the reasoning survives, the archaeology does not.
+
+A third companion closes the loop on the process. `pdd:report` is used when a skill misfired — a step
+was followed and the result was wrong, a gate passed something it should have caught, a script reported
+success it did not achieve. The incident is not the deliverable: one abstract anti-pattern and one
+class of change to the process are.
 
 ## Install
 
@@ -42,6 +47,24 @@ same-named skill on disk — call the qualified name:
 skill_view("pdd:decompose")
 skill_view("pdd:decompose", "references/task-verification.md")
 ```
+
+### Why `pdd:report` exists
+
+A method that edits itself needs the same evidence discipline it demands of code. Every change to a
+skill therefore carries three things a reviewer can check without re-running the session:
+
+- **the guideline it answers**, quoted with file and line, so the fix lands where the mistake was
+  caused rather than where it was noticed;
+- **one abstract anti-pattern** with the reason the wrong action looked right, so the reviewer can tell
+  whether the class of failure was understood or only this instance;
+- **a regression criterion** naming what observable thing will differ next time, so "fixed" is a claim
+  someone else can falsify.
+
+Reports live in `docs/retro/` beside an `ANTI-PATTERNS.md` index; ids are never reused. The same skill
+ships in `tidy-up-your-thoughts` as `tidy-up-your-thoughts:report`, writing to the thought topic
+instead. Its purpose in both places is the same: an agent that can repair its own process is only safe
+while the repair is reviewable, and reviewable means the reasoning, the change and the test are all on
+disk before the next session starts.
 
 ## What "bundled" buys you
 
