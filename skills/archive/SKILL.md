@@ -1,7 +1,7 @@
 ---
 name: archive
 description: "Use when old plans must become one history document."
-version: 1.0.2
+version: 1.0.3
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -215,6 +215,10 @@ Judgement (read by the main agent):
   the entry point and the only file a re-run updates first.
 
 ## Verification
+
+
+> A gate is only a gate while it can fail for the right reason. Before trusting a green run:
+> `skill_view("pdd:report", "references/gate-discipline.md")`.
 
 - [ ] `scripts/find_plans.py` was run, and its inventory matches what was batched (`ceil(n/3)` batches, ≤3 each);
 - [ ] every subagent report was checked against the plans by the main agent, citation by citation;

@@ -1,7 +1,7 @@
 ---
 name: study
 description: "Use when a repo's business branches must become AGENTS.md."
-version: 1.3.0
+version: 1.3.1
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -357,6 +357,10 @@ four judgement items:
   at the wrong branch, and nothing errors.
 
 ## Verification
+
+
+> A gate is only a gate while it can fail for the right reason. Before trusting a green run:
+> `skill_view("pdd:report", "references/gate-discipline.md")`.
 
 - [ ] the round plan exists, with a reason per excluded directory and a stop condition per unfinished one;
 - [ ] `scripts/check_agents_md.py {project_root}` exits 0;

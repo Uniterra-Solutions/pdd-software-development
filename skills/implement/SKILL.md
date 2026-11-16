@@ -1,7 +1,7 @@
 ---
 name: implement
 description: "Use when a TASKS.md exists and its DAG must be executed."
-version: 2.4.0
+version: 2.4.1
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -331,6 +331,10 @@ The full catalogue is in `references/pitfalls.md`. The most recurrent:
   `git branch --list 'pdd/*'`, not by the DAG being exhausted.
 
 ## Verification
+
+
+> A gate is only a gate while it can fail for the right reason. Before trusting a green run:
+> `skill_view("pdd:report", "references/gate-discipline.md")`.
 
 - [ ] every layer was dispatched in the DAG's partial order; no task started before its dependencies were
       accepted;

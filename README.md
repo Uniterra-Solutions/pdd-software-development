@@ -60,9 +60,13 @@ skill therefore carries three things a reviewer can check without re-running the
 - **a regression criterion** naming what observable thing will differ next time, so "fixed" is a claim
   someone else can falsify.
 
-Reports live in `docs/retro/` beside an `ANTI-PATTERNS.md` index; ids are never reused. The same skill
-ships in `tidy-up-your-thoughts` as `tidy-up-your-thoughts:report`, writing to the thought topic
-instead. Its purpose in both places is the same: an agent that can repair its own process is only safe
+Reports live in `docs/retro/` beside an `ANTI-PATTERNS.md` index; ids are never reused. What the first
+round of reports taught is generalised into `skills/report/references/gate-discipline.md` — five rules for
+knowing whether a green run means anything — and every skill here whose verification section runs a
+checker points at it.
+
+The same skill ships in `tidy-up-your-thoughts` as `tidy-up-your-thoughts:report`, writing to the thought
+topic instead. Its purpose in both places is the same: an agent that can repair its own process is only safe
 while the repair is reviewable, and reviewable means the reasoning, the change and the test are all on
 disk before the next session starts.
 

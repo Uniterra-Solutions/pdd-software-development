@@ -1,7 +1,7 @@
 ---
 name: review
 description: "Use when a finished plan needs an independent verdict."
-version: 2.2.0
+version: 2.2.1
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -214,6 +214,10 @@ edits no plan.
   command you pasted, or point to that `file:line` and clause.
 
 ## Verification
+
+
+> A gate is only a gate while it can fail for the right reason. Before trusting a green run:
+> `skill_view("pdd:report", "references/gate-discipline.md")`.
 
 - [ ] the main agent read the PRD and every task file, leaving a task × class × owned × `REQ` table;
 - [ ] a review DAG exists, and every unit has a type, a scope (≤3 tasks), its questions and an output path;
