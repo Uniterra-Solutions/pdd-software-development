@@ -48,7 +48,51 @@ skill_view("pdd:decompose")
 skill_view("pdd:decompose", "references/task-verification.md")
 ```
 
-### Why `pdd:report` exists
+## The recommended flow
+
+Five steps, in this order. Two of them are conditional, and the conditions are properties of the work
+rather than matters of preference.
+
+| # | Step | What it settles | Required |
+| --- | --- | --- | --- |
+| 1 | `pdd:plan` | The behaviour the change must have — one section per flow, `REQ-F` / `REQ-A` — before a single task exists | yes |
+| 2 | `pdd:decompose` | The four task classes, one dependency graph, the two gates, and an audit of the cut's scope and acceptance criteria | yes |
+| 3 | `pdd:explain` | Whether the plan as a whole can be followed by someone who will never read the code | **optional** — the comprehension check |
+| 4 | `pdd:implement` | The build: batch by batch, every task accepted by its class, each batch merged back into the recorded branch | yes |
+| 5 | `pdd:review` | An independent reading of the PRD and the tasks, against the delivered diff | **optional** — see below |
+
+The companions sit outside the chain: `pdd:study` runs before step 1 when the codebase has no map,
+`pdd:archive` runs after step 5 when the plan is retired, and `pdd:report` runs whenever a step misfires.
+
+### Step 3 — why `explain` sits before `implement`
+
+`explain` is written for readers who are not software engineers. It converts the plan into pure logical
+inference — what follows from what, and what would have to be true for each step to hold — so that
+knowledge from another field can be applied to this one without first acquiring the implementation
+vocabulary.
+
+Run it when the plan is large enough that you are not certain you understand the whole of it. If the
+explanation cannot be followed without a claim that is not already in the plan, the plan has a gap, and
+finding it here costs nothing next to finding it in the diff.
+
+Its output is not a summary for a stakeholder; it is a test of the plan's internal sufficiency, addressed
+to a reader who reasons logically and takes nothing on trust.
+
+### Step 5 — when `review` is worth its cost
+
+Review is a second, independent reading of the same plan by an agent that did not write it. That is worth
+paying for when the change is complex: several flows interacting, an architecture constraint to honour, a
+migration, or a deletion whose blast radius is not obvious.
+
+It is usually not worth paying for a refactor whose behaviour is meant to be unchanged and whose test
+safety net is adequate. The suite already states what must stay true; a reviewer would add a second opinion
+on a question the tests answer mechanically. The same holds for a change small enough to read in one
+screen.
+
+The judgement is the complexity of the change, not the length of the task list: ten mechanical renames
+carry less reviewable risk than one altered state machine.
+
+## Why `pdd:report` exists
 
 A method that edits itself needs the same evidence discipline it demands of code. Every change to a
 skill therefore carries three things a reviewer can check without re-running the session:
