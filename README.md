@@ -65,6 +65,11 @@ round of reports taught is generalised into `skills/report/references/gate-disci
 knowing whether a green run means anything — and every skill here whose verification section runs a
 checker points at it.
 
+Its last step publishes: the tracker is searched for the mechanism first, and a match receives a comment on
+the existing issue rather than a twin; the body is scrubbed of every project and person before it leaves the
+machine, and `scripts/check_issue.py` holds that boundary mechanically — absolute paths, emails, IPs,
+non-GitHub URLs, bare revisions, deny words, and the redaction line that says what was removed.
+
 The same skill ships in `tidy-up-your-thoughts` as `tidy-up-your-thoughts:report`, writing to the thought
 topic instead. Its purpose in both places is the same: an agent that can repair its own process is only safe
 while the repair is reviewable, and reviewable means the reasoning, the change and the test are all on
