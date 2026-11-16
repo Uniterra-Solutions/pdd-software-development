@@ -1,6 +1,6 @@
 # pdd-software-development
 
-A Hermes plugin that ships **Proposition-Driven Development (PDD)** as five bundled skills, plus two
+A Hermes plugin that ships **Proposition-Driven Development (PDD)** as five bundled skills, plus three
 companions that work on a repository before and after the plan: one maps what the code does today, the
 other retires the plans that no longer do.
 
@@ -35,6 +35,7 @@ same-named skill on disk — call the qualified name:
 | `pdd:review` | Read PRD + tasks, write a review DAG, dispatch two reviewer types, synthesise findings |
 | `pdd:explain` | Explain a plan to a non-engineer without inventing claims |
 | `pdd:study` | Companion: one read-only subagent per workspace member or package root reconstructs every business branch, its trigger and its selection path, and writes the result as a per-directory `AGENTS.md`; the main agent re-resolves every citation and indexes them all in the root `AGENTS.md`. When the knowledge base already exists it runs as a delta: every commit since each file's recorded commit is diffed, the changed paths are sorted by the unit that owns them, and one subagent per affected unit rewrites only the rows whose evidence moved |
+| `pdd:report` | Companion: when the process itself misfired — a skill was followed and the result was wrong, a step was skipped, a script reported success it did not achieve. Traces the incident to the guideline that produced it (quoted, with file and line), extracts one abstract anti-pattern with six fields, then picks exactly one class of change (prompt / information / code / process, with the process change carrying the argument against the cheaper fix), applies it in the same session, and writes the report to `docs/retro/` with a regression criterion |
 | `pdd:archive` | Companion: subagents read at most three plans each (any era, any format) and return decision records with the rejected alternative and the quoted reason; the main agent draws every era and every decision in `docs/history/`, then deletes the summarised plans — recoverable from the commits the index names |
 
 ```
