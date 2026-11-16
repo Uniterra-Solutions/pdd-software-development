@@ -1,7 +1,7 @@
 ---
 name: archive
 description: "Use when old plans must become one history document."
-version: 1.0.0
+version: 1.0.1
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -192,6 +192,8 @@ Judgement (read by the main agent):
   produces a plausible story with no author. Cite the plan or the commit, or mark the reason unknown.
 - **Skipping a plan because its format is unfamiliar.** The excluded plan is usually the oldest one, which is
   the one whose reasoning exists nowhere else → classify the format and summarise by assertion.
+- **A cell containing a literal `|`.** `check_history.py` splits a register row on `|` without honouring escapes, so a `\|` inside `decided` or `because` still splits the row and the row drops out of the register entirely — the conflict rule, the graph agreement and the id-for-id accounting all stop seeing it (a 528-row register parsed as 523, with only the missing ids to show for it) → strip the character when emitting cells; backslash-escaping does not work, and the checker reports the cell count and names this cause.
+- **`--render` as root.** `mmdc` launches Chrome with no `--no-sandbox`, which fails when the process runs as root and reports the failure once per block — indistinguishable from a mermaid syntax error. `check_history.py` now passes `{"args":["--no-sandbox","--disable-setuid-sandbox"]}` as a puppeteer config whenever `geteuid() == 0`, so a render failure on a root box is a real syntax error; a manual `mmdc` run still needs the same config.
 - **A register that keeps both sides of a conflict.** Two rows assert different rules and every reader has to
   decide which to believe → the newest record wins, the older claim survives only as a pointer inside it, and the
   replacement is cited so the change is auditable.

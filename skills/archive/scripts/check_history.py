@@ -80,7 +80,9 @@ def check_register(text: str, errors: list[str], warnings: list[str]) -> dict[st
         did = m.group(1)
         cells = split_cells(line)
         if len(cells) != 11:
-            errors.append(f"{did}: {len(cells)} cells, the register has 11 (see decision-record.md §2.1)")
+            errors.append(f"{did}: {len(cells)} cells, the register has 11 (see decision-record.md §2.1)"
+                          + (" — a literal `|` inside a cell splits the row; strip it when emitting"
+                             if len(cells) > 11 else ""))
             continue
         (_id, subject, date, status, decided, rejected, because, evidence, source, commit, eras) = cells
         subject = subject.strip("`")
@@ -198,8 +200,6 @@ def check_coverage(text: str, discovered: list[dict], register: dict[str, dict],
             errors.append(f"{path}: status {row['status']!r} is not one of {sorted(STATUSES)}")
         if row["status"] in {"excluded", "in_flight", "archived"} and not row["note"].strip():
             errors.append(f"{path}: status {row['status']} needs a note saying why")
-        if row["status"] == "deleted":
-            deleted_rows.append((path, row))
 
     on_disk = {p["path"].rstrip("/") for p in discovered}
     for path in sorted(set(rows) - on_disk):
@@ -222,7 +222,10 @@ def check_coverage(text: str, discovered: list[dict], register: dict[str, dict],
         if not (holder and blob.strip()):
             errors.append(f"{path}: not recoverable from any commit in the repository")
         removed = sh(root, "git", "log", "--all", "--format=%H", "--diff-filter=D", "--", path).split()
-        if row["deleted_in"] not in removed:
+        # the index carries an abbreviated sha (the template shows seven characters), while
+        # git log prints forty: compare as prefixes, and never accept a sha shorter than seven.
+        hit = len(row["deleted_in"]) >= 7 and any(full.startswith(row["deleted_in"]) for full in removed)
+        if not hit:
             errors.append(f"{path}: {row['deleted_in']} is not a commit that deleted this path")
         if os.path.exists(os.path.join(root, path)):
             warnings.append(f"{path}: marked deleted but still present on disk")
@@ -230,10 +233,33 @@ def check_coverage(text: str, discovered: list[dict], register: dict[str, dict],
 
 def check_references(deleted: list[str], root: str, errors: list[str]) -> None:
     for path in deleted:
+        prefix = path.rstrip("/") + "/"
         out = sh(root, "git", "grep", "-n", "--fixed-strings", path, "--", "*.md",
                  ":!docs/history/*", ":!docs/history/**")
         for line in out.splitlines()[:5]:
+            # a hit inside the plan's own tree is the plan talking about itself: it leaves with the
+            # plan in this commit, so nothing that survives points at a path that is about to vanish
+            source = line.split(":", 1)[0]
+            if source == path or source.startswith(prefix):
+                continue
             errors.append(f"live document still points at the deleted plan {path}: {line}")
+
+
+def render_command(mmdc: str, src: str, out: str) -> list[str]:
+    """mmdc launches Chrome without --no-sandbox, which fails when this runs as root.
+
+    The failure arrives as a non-zero exit per block and reads exactly like a mermaid syntax error, so
+    a root run gets a puppeteer config rather than a misleading finding.
+    """
+    cmd = ([mmdc, "-i", src, "-o", out] if mmdc != "npx"
+           else ["npx", "-y", "@mermaid-js/mermaid-cli", "-i", src, "-o", out])
+    if hasattr(os, "geteuid") and os.geteuid() == 0:
+        cfg = os.path.join(tempfile.gettempdir(), "pdd-mmdc-puppeteer.json")
+        if not os.path.exists(cfg):
+            with open(cfg, "w", encoding="utf-8") as fh:
+                fh.write('{"args": ["--no-sandbox", "--disable-setuid-sandbox"]}\n')
+        cmd += ["-p", cfg]
+    return cmd
 
 
 def check_mermaid_blocks(root: str, render: bool, errors: list[str], warnings: list[str]) -> None:
@@ -258,8 +284,7 @@ def check_mermaid_blocks(root: str, render: bool, errors: list[str], warnings: l
             with tempfile.NamedTemporaryFile("w", suffix=".mmd", delete=False) as fh:
                 fh.write(block)
                 tmp = fh.name
-            cmd = ([mmdc, "-i", tmp, "-o", tmp + ".svg"] if mmdc != "npx"
-                   else ["npx", "-y", "@mermaid-js/mermaid-cli", "-i", tmp, "-o", tmp + ".svg"])
+            cmd = render_command(mmdc, tmp, tmp + ".svg")
             proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
             if proc.returncode != 0:
                 tail = (proc.stderr or "").strip().splitlines()[-3:]
