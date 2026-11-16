@@ -35,11 +35,11 @@ Conventions, all of which the checker understands:
 | --- | --- |
 | entry point | stadium node `(["..."])`, the invocation a caller makes, not a function name |
 | predicate | rhombus `{"..."}`, the quoted predicate **plus its `file:line`** on a second line (`<br/>`) |
-| branch | rectangle `["B<k> {behaviour}"]`, the id matching the table row exactly |
+| branch | rectangle `["B{k} {behaviour}"]`, the id matching the table row exactly |
 | edge label | the predicate's outcome that walks this edge — `yes`, `no`, or the value (`"mode=stream"`) |
 | direction | `TD` (top-down) for a pipeline, `LR` when the chain is long and thin; one direction per file |
 
-Node ids are `E<k>`, `P<k>`, `B<k>`: no spaces, no punctuation, never reused for two things. Labels may hold
+Node ids are `E{k}`, `P{k}`, `B{k}`: no spaces, no punctuation, never reused for two things. Labels may hold
 any text, but a label containing `(`, `)`, `[`, `]`, `{`, `}`, `"`, `:` or `|` is the most common way to break a
 mermaid block — either wrap the whole label in double quotes (`B01["B01 reject (400)"]`) or use the HTML entity
 (`&lt;`, `&gt;`) for the brackets, as the example does for the CLI invocation.
@@ -84,7 +84,7 @@ the detail.
 
 `scripts/check_agents_md.py` verifies the mechanical part of every block: a fenced ` ```mermaid ` block exists,
 it starts with `flowchart`, node ids are well formed, ids are not declared twice with different labels, every
-`B<k>` in the graph has a row, and every row has a `B<k>` in the graph.
+`B{k}` in the graph has a row, and every row has a `B{k}` in the graph.
 
 A real render is better than a lint when a renderer is available:
 

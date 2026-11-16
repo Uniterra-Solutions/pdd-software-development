@@ -88,8 +88,8 @@ removed from the round plan, with the reason.
 The round plan is the contract for the rest of the skill. Write it down in the run ledger:
 
 ```
-round 1: {member} … (<n> subagents, one each)
-round 2: {member}/{package_root} … (<m> subagents)   ← only what round 1 reports
+round 1: {member} … ({n} subagents, one each)
+round 2: {member}/{package_root} … ({m} subagents)   ← only what round 1 reports
 round 3: …
 ```
 
@@ -248,8 +248,8 @@ python3 scripts/check_agents_md.py {project_root} --stale
 `--verify` errors when a file was not refreshed although its unit moved, when a row whose cited file ended
 the window unchanged came back altered or missing, and when a knowledge-base file disappeared while the
 root index still names it. It compares against the **committed** version, so it runs before the refresh is
-committed: one commit per unit after it passes, `{unit}: study delta <base8>..<head8> — +<n> rows, ~<m>
-updated, -<k> retired`, which is the durable record of what was read.
+committed: one commit per unit after it passes, `{unit}: study delta <base8>..<head8> — +{n} rows, ~{m}
+updated, -{k} retired`, which is the durable record of what was read.
 
 ## Acceptance
 

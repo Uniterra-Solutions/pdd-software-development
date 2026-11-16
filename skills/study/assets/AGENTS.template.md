@@ -3,7 +3,7 @@
      what lies between the markers. Text outside the markers is human-owned; never touch it.
      Fill every placeholder. Delete a section only if you write why at the bottom of the block. -->
 
-# <unit name>
+# {unit name}
 
 <!-- study:begin -->
 ## Scope
@@ -21,16 +21,16 @@ structure. If this paragraph would also be true of a sibling directory, it is to
 
 | id | branch | behaviour (observable) | trigger (quoted) | site | example | notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| `B01` | <short name> | <what the caller observes> | `<quoted predicate>` + config `{key}={default}` (`{path}:{line}`) | `{path}:{line}` | <one concrete input> | |
-| `B02` | <the default path — never omit it> | <what the caller observes when nothing matches> | <the absence of the above predicates> | `{path}:{line}` | <input that matches nothing> | default |
+| `B01` | {short name} | {what the caller observes} | `{quoted predicate}` + config `{key}={default}` (`{path}:{line}`) | `{path}:{line}` | {one concrete input} | |
+| `B02` | <the default path — never omit it> | {what the caller observes when nothing matches} | {the absence of the above predicates} | `{path}:{line}` | {input that matches nothing} | default |
 
 ## Selection paths
 
 ```mermaid
 flowchart TD
   E1(["{invocation}"])
-  P1{"<quoted predicate><br/>{path}:{line}"}
-  B01["B01 <short name>"]
+  P1{"{quoted predicate}<br/>{path}:{line}"}
+  B01["B01 {short name}"]
   B02["B02 {default}"]
   E1 --> P1
   P1 -- "yes" --> B01
@@ -39,13 +39,13 @@ flowchart TD
 
 ## Invariants and traps
 
-- <rule that holds today and would not survive an innocent edit> — enforced at `{path}:{line}`
+- {rule that holds today and would not survive an innocent edit} — enforced at `{path}:{line}`
 - <rule nobody enforces, which the code assumes> — not enforced
 
 ## Verify
 
 ```
-<cheapest command that exercises this directory>
+{cheapest command that exercises this directory}
 <one suite, scoped to this unit>
 ```
 
@@ -53,13 +53,13 @@ flowchart TD
 
 | Path | Why it is a separate unit | Round |
 | --- | --- | --- |
-| `{path}/` | <the entry point it owns> | 2 |
+| `{path}/` | {the entry point it owns} | 2 |
 
 `None — this directory is a leaf; no deeper unit owns an entry point.`
 
 ## Provenance
 
 - generated: `<40-char commit>` @ `<YYYY-MM-DD>`
-- by: `pdd:study` round `<n>`          <!-- a refresh writes: delta `<base8>..<head8>` -->
+- by: `pdd:study` round `{n}`          <!-- a refresh writes: delta `<base8>..<head8>` -->
 - re-check: `python3 {plugin}/skills/study/scripts/check_agents_md.py {project_root}`
 <!-- study:end -->

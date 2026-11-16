@@ -80,6 +80,6 @@ one entry point that is not state-driven (the cancel handler).
 
 ## 6. Report what you chose, and why
 
-The report line is `graph: <n> mermaid blocks ({types}); render run: yes|no (lint only)`, and if you drew a
+The report line is `graph: {n} mermaid blocks ({types}); render run: yes|no (lint only)`, and if you drew a
 shape other than the selection path, one clause saying which question it answers. That clause is how the main
 agent tells a considered choice from an accident.

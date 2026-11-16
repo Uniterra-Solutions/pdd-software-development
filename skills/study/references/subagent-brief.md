@@ -8,8 +8,8 @@ acceptance reads the other.
 
 ```
 role:        code cartographer. Read-only except for the ONE AGENTS.md you own.
-project:     <project root>                      ← read-only
-your unit:   <member or package_root path>       ← the whole of your assignment
+project:     {project root}                      ← read-only
+your unit:   {member or package_root path}       ← the whole of your assignment
 your output: {unit}/AGENTS.md                    ← the only file you may create or edit
 rules:       {plugin}/skills/study/references/branch-inventory.md    ← what a row must contain
              {plugin}/skills/study/references/branch-survey.md         ← how to find them fast
@@ -47,16 +47,16 @@ study was edited by someone else, and the finding no longer describes what is on
 
 ```
 unit:            {path}
-entries:         <n> entry points, listed
-branches:        <n> rows (B01..Bnn); excluded <n> conditionals, with the reason for each
-unknown triggers: <n>, each with the searches performed
-unreachable:     <n>, each with the evidence that no input takes it
-cross-member:    <n>, each naming the member that owns the value
-nested roots:    <n> candidates, each with the entry point that makes it a unit
-graph:           <n> mermaid blocks; render run: yes (mmdc) / no (lint only)
-citations:       <n> file:line references, all opened
-contradictions:  <n>, each quoting the parent claim and the code
-wrote:           <exactly one path>
+entries:         {n} entry points, listed
+branches:        {n} rows (B01..Bnn); excluded {n} conditionals, with the reason for each
+unknown triggers: {n}, each with the searches performed
+unreachable:     {n}, each with the evidence that no input takes it
+cross-member:    {n}, each naming the member that owns the value
+nested roots:    {n} candidates, each with the entry point that makes it a unit
+graph:           {n} mermaid blocks; render run: yes (mmdc) / no (lint only)
+citations:       {n} file:line references, all opened
+contradictions:  {n}, each quoting the parent claim and the code
+wrote:           {exactly one path}
 touched anything else: no
 ```
 
@@ -104,8 +104,8 @@ about what may change.
 
 ```
 role:            code cartographer, refreshing an existing map. Read-only except for the ONE AGENTS.md you own.
-project:         <project root>                      ← read-only
-your unit:       <member or package_root path>       ← the whole of your assignment
+project:         {project root}                      ← read-only
+your unit:       {member or package_root path}       ← the whole of your assignment
 your output:     {unit}/AGENTS.md                    ← the only file you may edit
 base:            <40-char commit>                    ← the `generated:` line the file carries now
 touched:         <the unit's paths from study_delta.py, one per line>
@@ -142,17 +142,17 @@ report:      §6 below
 
 ```
 unit:             {path}
-base → head:      <base8> → <head8>  (<n> commits, <m> files touched)
-rows unchanged:   <n>  — ids …
-rows re-sited:    <n>  — {id}: <old site> → <new site>, predicate unchanged
-rows rewritten:   <n>  — {id}: <what changed in the predicate or the behaviour>
-rows added:       <n>  — {id}: trigger, site, the commit that introduced it
-rows retired:     <n>  — {id}: the evidence that no input reaches it any more
-graph:            updated <n> block(s), untouched <n>
+base → head:      <base8> → <head8>  ({n} commits, {m} files touched)
+rows unchanged:   {n}  — ids …
+rows re-sited:    {n}  — {id}: {old site} → {new site}, predicate unchanged
+rows rewritten:   {n}  — {id}: {what changed in the predicate or the behaviour}
+rows added:       {n}  — {id}: trigger, site, the commit that introduced it
+rows retired:     {n}  — {id}: the evidence that no input reaches it any more
+graph:            updated {n} block(s), untouched {n}
 sections changed: <Scope | Entry points | Invariants | Nested package roots | none>
 provenance:       written, <base8>..<head8>
-unresolved:       <n>, each with the searches performed
-wrote:            <exactly one path>
+unresolved:       {n}, each with the searches performed
+wrote:            {exactly one path}
 touched anything else: no
 ```
 

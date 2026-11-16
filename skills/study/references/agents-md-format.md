@@ -7,7 +7,7 @@ behaviour with a citation, or a pointer to a child file.
 ## 1. Required shape
 
 ```markdown
-# <member name>
+# {member name}
 
 <!-- study:begin -->
 ## Scope
@@ -55,7 +55,7 @@ Or `None — this directory is a leaf; no deeper unit owns an entry point.`
 ## Provenance
 
 - generated: `<40-char commit>` @ `<YYYY-MM-DD>`
-- by: `pdd:study` round `<n>`
+- by: `pdd:study` round `{n}`
 - re-check: `python3 {plugin}/skills/study/scripts/check_agents_md.py {project_root}`
 <!-- study:end -->
 ```
@@ -74,7 +74,7 @@ destroys the only part with a maintainer. So:
 - **file exists with markers → replace only** what lies between them (markers included), leaving everything
   outside intact;
 - **a human rule conflicts with a reconstructed branch** → do not edit the human rule. Record it in the
-  `Branches` table's `notes` as `contradicts: <quoted human rule>` and report it. The file the humans maintain
+  `Branches` table's `notes` as `contradicts: {quoted human rule}` and report it. The file the humans maintain
   is the authority on what they meant; the inventory is the authority on what the code does, and a disagreement
   between them is the most valuable thing this skill can surface.
 
@@ -85,7 +85,7 @@ was true at `{commit}`" is a property of the generated block, not of the file.
 
 - `generated: {commit} @ {date}` — the tree the study read. Without it a file cannot be distinguished from one
   written against code that no longer exists.
-- `by: pdd:study round <n>` — which round produced it, so a later reader knows whether a nested directory was
+- `by: pdd:study round {n}` — which round produced it, so a later reader knows whether a nested directory was
   ever studied.
 - `re-check: …` — the exact command that re-verifies citations, so "is this file still true?" is one paste.
 
@@ -154,12 +154,12 @@ Two write rules follow from that:
   where it came from on the next line:
 
 ```markdown
-- generated: `<head sha>` @ `<YYYY-MM-DD>`
+- generated: `{head sha}` @ `<YYYY-MM-DD>`
 - by: `pdd:study delta <base8>..<head8>`
 - re-check: `python3 {plugin}/skills/study/scripts/check_agents_md.py {project_root}`
 ```
 
-`round <n>` belongs to a first study. A file refreshed twice carries the latest base, and the chain of earlier
+`round {n}` belongs to a first study. A file refreshed twice carries the latest base, and the chain of earlier
 bases lives in `git log -p -- {unit}/AGENTS.md`, which is where a reader looking for history should end up.
 
 The block is still generated, so replacing it wholesale is not a violation in itself — the content is what
