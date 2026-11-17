@@ -58,7 +58,7 @@ rather than matters of preference.
 | 1 | `pdd:plan` | The behaviour the change must have — one section per flow, `REQ-F` / `REQ-A` — before a single task exists | yes |
 | 2 | `pdd:decompose` | The four task classes, one dependency graph, the two gates, and an audit of the cut's scope and acceptance criteria | **conditional** — a multi-behaviour or architectural change needs it; a PRD naming one flow goes straight to `pdd:implement`, which cuts the slices for that one dispatch and persists none |
 | 3 | `pdd:explain` | Whether the plan as a whole can be followed by someone who will never read the code | **optional** — the comprehension check |
-| 4 | `pdd:implement` | The build: batch by batch, every task accepted by its class, each batch merged back into the recorded branch | yes |
+| 4 | `pdd:implement` | The build: batch by batch, every task accepted by its class — or, with no tasks, one flow cut into slices and accepted against the requirement each serves — each batch merged back into the recorded branch | yes |
 | 5 | `pdd:review` | An independent reading of the PRD and the tasks, against the delivered diff | **optional** — see below |
 
 The companions sit outside the chain: `pdd:study` runs before step 1 when the codebase has no map,
