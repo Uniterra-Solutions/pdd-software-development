@@ -1,7 +1,7 @@
 ---
 name: implement
 description: "Use when a TASKS.md exists and its DAG must be executed."
-version: 2.4.1
+version: 2.4.3
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -110,6 +110,19 @@ One `delegate_task` per ready layer. The brief's shape and its rationale are in
 Do not poll during the same period. End the turn after dispatch and handle completion notices in batch.
 When the parallelism ceiling is below the ready set, dispatch in waves and say so.
 
+**A failed step does not undo the steps that passed.** A multi-step task that fails at step *k* keeps the
+worktree as it stands: commit steps 1..*k*−1 as `wip(<task-id>): steps 1..k−1, blocked at <step>` and report
+the failing step with its command and output. The re-dispatch starts from that checkpoint and its failure
+list is expected to be shorter. Returning the worktree to the baseline discards work that was already green
+on its own step check, and the next attempt pays for all of it again.
+
+**A slice is a dispatch, not a step.** When one task's steps fall into groups whose owned files are disjoint,
+each group is its own subagent in its own worktree, dispatched in the same layer — only the merge, the frozen
+contract files and each worktree's build output directory are sequential. The mapping that settles the doubt:
+**one worktree's delta becomes one commit, produced by the dispatcher at merge time**, because subagents
+never commit. So the number of worktrees follows the number of disjoint file sets and nothing else; "one
+commit" constrains what a commit may contain, never how many worktrees may run at once.
+
 **Measurement tasks (wall-clock baselines, `--record`, performance budgets) run in a round of their own.**
 Their product is a median; sharing CPU with any other task measures the other task's load, and that number
 later becomes the before. Re-recording a baseline has one more precondition: the suite must be green — run
@@ -184,7 +197,9 @@ innocent. A branch change detected mid-run stops the run.
 Before applying, re-verify the destination hashes. A path whose content changed since the baseline is newer
 work: stop and report, never overwrite it. One commit per accepted task, the message naming the task id and
 its class, so a later revert is attributable — a batch of three accepted tasks gives three commits in DAG
-order. Conflicts are resolved explicitly by the dispatcher and recorded in the layer report; an unresolvable
+order. A task run as several disjoint slices gives one commit per slice, merged in the order the task file
+names; it is squashed into one commit only when the task file asks for one. Conflicts are resolved explicitly
+by the dispatcher and recorded in the layer report; an unresolvable
 conflict stops the run with the clause it contradicts.
 
 **Then verify in the main tree**: that task's observation rerun there, plus the existing modules and suites
@@ -349,7 +364,12 @@ The full catalogue is in `references/pitfalls.md`. The most recurrent:
 - [ ] after each merge the affected modules and suites were rerun in the main tree;
 - [ ] the typecheck error count did not rise above the baseline;
 - [ ] every accepted task's delta was merged into the working branch recorded in §2, one commit per task
-      naming its id and class, and no merge landed after the next batch had opened;
+      naming its id and class (one per slice for a sliced task), and no merge landed after the next batch had
+      opened;
+- [ ] a task's file-disjoint slices ran concurrently — `git worktree list` showed more than one at a time —
+      and the run cost the slowest slice, not the sum;
+- [ ] a multi-step task that stopped left a `wip(<task-id>)` checkpoint whose delta is exactly the steps that
+      passed; no worktree was returned to the baseline;
 - [ ] every merge was verified in the main tree before its worktree was removed, and every removed worktree's
       directory and `pdd/<task-id>` branch are gone;
 - [ ] the closing check ran: `git worktree list` lists only the pre-existing worktrees plus retained ones

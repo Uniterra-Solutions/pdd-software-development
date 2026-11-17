@@ -96,6 +96,7 @@ One test: cover up where the new code came from and look only at the naming — 
 
 - Write only the files listed in `Owned files`. Every other file is read-only.
 - Do not change the contract: the task file, `TASKS.md` and `PRD.md` are all read-only. If the contract contradicts itself, stop.
+- **The boundary limits what you may write, not what you may question.** A gate that reports red on a tree you can show is correct, a baseline that compares the wrong key, a step the code proves unnecessary: report it with the command, its output and the clause it contradicts. Never compensate for a broken instrument inside your own steps — a save/copy/restore dance around a gate is the finding, not the workaround.
 - Add no dependencies; the manifest and lockfile are done by the dispatcher first, and are read-only to you.
 - No commit, no push, no tag, no merge, no touching another worktree, no creating or deleting a worktree.
 - Leave no temporary scripts or backup files in the repo; delete scratch once you are done with it. `_old`, `if false` and commented-out corpses do not count as delivery.

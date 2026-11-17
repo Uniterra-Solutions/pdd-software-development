@@ -156,3 +156,13 @@ Three lines across every class:
 - **Leaving the worktree and its branch behind.** A stale worktree keeps an old baseline alive, and the next
   layer picks it up as if it were current — the run is closed by `git worktree list` and
   `git branch --list 'pdd/*'`, not by the DAG being exhausted.
+- **Rolling a worktree back to the baseline after one failed step.** The steps that passed die with the step
+  that failed, and the next attempt re-derives them at the same cost. Commit them as a `wip(<task-id>)`
+  checkpoint and re-dispatch from there; a partial delta that is green on its own step check is progress, not
+  contamination.
+- **Serialising a task's file-disjoint slices.** Five slices run one after another because "one task, one
+  commit" was read as "one workspace". Slices are same-layer dispatches: one worktree each, one commit each at
+  merge, and each slice's failure costs only its own wall-clock time.
+- **Compensating inside the steps for a gate that is wrong.** A save/copy/restore dance around a checker, a
+  hand-computed value pasted next to the script's output. The instrument is the deliverable; report it, do not
+  route around it.
