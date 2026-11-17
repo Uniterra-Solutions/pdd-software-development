@@ -148,7 +148,7 @@ Four rules carry most of the regime's reliability:
 | --- | --- | --- |
 | **plan** | The claim: business model, one behaviour section per flow, `REQ-F` / `REQ-A` | Describe anything recoverable from the code (flags, paths, schemas, test design) |
 | **decompose** | Order, boundaries, classes, gates, DAG | Write tests, models or production code |
-| **implement** | Execution in the given order; acceptance by class | Re-plan, re-cut tasks, edit the contract, write tests or models |
+| **implement** | Execution in the given order, acceptance by class; with no tasks, the cut and dispatch of one flow's slices (no contract persisted) | Re-plan, re-cut a dispatched task, edit the contract, write tests or models, persist a breakdown |
 | **review** | Independent judgement; two reviewer types selected by class | Modify code; repairs are new tasks |
 | **explain** | Faithful restatement for a non-engineer | Introduce claims the plan does not contain |
 

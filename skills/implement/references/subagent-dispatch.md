@@ -35,7 +35,8 @@ you get "each of them green, red after the merge".
 
 ## 2. Give the subagent the task file's directory
 
-The brief gives **paths**, never pasted bodies.
+The brief gives **paths**, never pasted bodies. With no task file at all (Workflow B), the same shape holds
+with the requirement replacing the task: `references/workflow-b.md` §3 is the variant.
 
 ```
 your worktree:  <worktree path>          ← the only writable tree

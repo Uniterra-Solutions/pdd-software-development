@@ -36,7 +36,7 @@ same-named skill on disk — call the qualified name:
 | --- | --- |
 | `pdd:plan` | Write the PRD: business model, one behaviour section per flow, `REQ-F` / `REQ-A` |
 | `pdd:decompose` | Turn the PRD into four classes of task (construction / verification / migration / removal), one DAG, two gates, then audit the cut's scope and acceptance criteria with one read-only auditor per three tasks |
-| `pdd:implement` | Dispatch the DAG batch by batch, accept each task by its class, merge the batch back into the recorded working branch, close its worktrees, stop on contradiction |
+| `pdd:implement` | Dispatch the batch, accept each unit against the plan's own standard, merge it back into the recorded working branch and close its worktree before the next opens. Two entries: the `TASKS.md` DAG batch by batch, accepted by class; or — with no tasks — one PRD flow the dispatcher cuts into slices itself, accepted against the `REQ-F` each serves, promoted back to `pdd:decompose` the moment the work stops being small |
 | `pdd:review` | Read PRD + tasks, write a review DAG, dispatch two reviewer types, synthesise findings |
 | `pdd:explain` | Explain a plan to a non-engineer without inventing claims |
 | `pdd:study` | Companion: one read-only subagent per workspace member or package root reconstructs every business branch, its trigger and its selection path, and writes the result as a per-directory `AGENTS.md`; the main agent re-resolves every citation and indexes them all in the root `AGENTS.md`. When the knowledge base already exists it runs as a delta: every commit since each file's recorded commit is diffed, the changed paths are sorted by the unit that owns them, and one subagent per affected unit rewrites only the rows whose evidence moved |
@@ -56,7 +56,7 @@ rather than matters of preference.
 | # | Step | What it settles | Required |
 | --- | --- | --- | --- |
 | 1 | `pdd:plan` | The behaviour the change must have — one section per flow, `REQ-F` / `REQ-A` — before a single task exists | yes |
-| 2 | `pdd:decompose` | The four task classes, one dependency graph, the two gates, and an audit of the cut's scope and acceptance criteria | yes |
+| 2 | `pdd:decompose` | The four task classes, one dependency graph, the two gates, and an audit of the cut's scope and acceptance criteria | **conditional** — a multi-behaviour or architectural change needs it; a PRD naming one flow goes straight to `pdd:implement`, which cuts the slices for that one dispatch and persists none |
 | 3 | `pdd:explain` | Whether the plan as a whole can be followed by someone who will never read the code | **optional** — the comprehension check |
 | 4 | `pdd:implement` | The build: batch by batch, every task accepted by its class, each batch merged back into the recorded branch | yes |
 | 5 | `pdd:review` | An independent reading of the PRD and the tasks, against the delivered diff | **optional** — see below |

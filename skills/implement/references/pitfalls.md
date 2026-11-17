@@ -112,3 +112,19 @@ groups.
 - **Stopping without recording.** The value of a stop is the three things it leaves: the command and its raw
   output, the minimal counterexample, and the contract clause it contradicts. Miss one and the next person
   starts from scratch.
+
+## 8. Workflow B (no `TASKS.md`)
+
+- **An estimate of effort used as the entry test.** "It looks simple" is not one of §B1's five clauses; the
+  clauses are read off the PRD. A wrong entry ends as a flow nobody modelled, merged green.
+- **Writing a small `TASKS.md` so the run can continue like A.** The cut becomes a contract while carrying no
+  gates, no classes and no audit, and the next run trusts it to mean what `TASKS.md` means. B's cut lives in
+  the run ledger and dies with the run.
+- **Cutting by file count to get parallelism.** Files that must change together are one seam: split, both
+  slices fail their observation and neither can merge.
+- **Accepting on "its tests pass".** B has no class table, so there is no weaker standard to fall back on —
+  the requirement is observed from the real entry point, or the slice is retained.
+- **Adding one more slice after a discovery.** The fourth disjoint group is the signal that the plan needed
+  decomposing. Close the worktrees and promote, rather than re-cutting quietly so the run keeps its label.
+- **A commit subject that names the surface but not the requirement.** B leaves no task files; the `REQ-F` id
+  is the only trace from the code back to the plan.

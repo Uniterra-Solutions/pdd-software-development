@@ -1,7 +1,7 @@
 ---
 name: implement
-description: "Use when a TASKS.md exists and its DAG must be executed."
-version: 2.4.3
+description: "Use when a plan must be built: a TASKS.md DAG, or one PRD flow with no tasks."
+version: 2.5.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -11,25 +11,44 @@ metadata:
     related_skills: [plan, decompose, review, explain]
 ---
 
-# Executing a scheduled task DAG
+# Building a plan
 
-One goal: **in the order `pdd:decompose` set, dispatch every task in `TASKS.md`, accept each against the
-acceptance object of its own class, merge the accepted work back into the current working branch and close
-its worktree, then dispatch the next batch.**
+One goal: **dispatch the work the plan describes, accept each unit against the plan's own standard, and
+merge it into the working branch and close its worktree before the next unit opens.**
 
-It does not set the order, does not edit tasks, does not write tests or models, does not judge whether a
-requirement is right, and does not do a quality review. It is the executor, not a second planner.
+Two entries, one discipline:
+
+| Workflow | Input | The unit of dispatch | What accepts it |
+| --- | --- | --- | --- |
+| **A — scheduled DAG** | `TASKS.md` and `tasks/` | one task file, in the order `pdd:decompose` set, gated | the acceptance object of its own class |
+| **B — one flow, no tasks** | `PRD.md` with one flow and no `TASKS.md` | a slice the dispatcher cuts itself, dispatched in one layer | the `REQ-F` it serves, observed from the real entry point |
+
+**Workflow B is not a shortcut around the process, it is the process for a smaller input.** The PRD's
+"Next: `pdd:implement` for one behaviour" is B's invitation; its simpleness test (§B1) is the admission
+price, and a run that stops being simple is promoted back to `pdd:decompose` rather than stretched. Both
+workflows share A's shared work, its brief, its per-batch merge and its closing check — B replaces the
+contract with a cut it does not persist, nothing else.
+
+In A it does not set the order, does not edit tasks, does not write tests or models, does not judge
+whether a requirement is right, and does not do a quality review. In B it does not write the plan either.
+It is the executor, not a second planner.
 
 ## When to use
 
-- `TASKS.md` and its `tasks/` directory exist, and the work is to execute the DAG they describe.
+- `TASKS.md` and its `tasks/` directory exist, and the work is to execute the DAG they describe → **Workflow A**.
 - A layer of ready tasks must be dispatched in parallel and each result accepted before the next layer.
 - Routing: order, gates and task boundaries belong to `pdd:decompose`; requirement correctness belongs to
   `pdd:plan` or the user; quality judgement belongs to `pdd:review`, and only when the user asks.
 
-**Without `TASKS.md` this skill has no input.** Report that, and ask the user to run `pdd:plan` and
-`pdd:decompose` first. A one-off small change is ordinary engineering work: it is not part of the PDD
-process and must not borrow this skill's name to be improvised on the spot.
+**No `TASKS.md` and no `tasks/`, but a `PRD.md` exists** → **Workflow B**: the dispatcher cuts one flow into
+slices, dispatches them in one layer, and accepts each against the requirement it serves. It runs only if
+§B1's five clauses pass; when one fails, the answer is `pdd:decompose`, not a narrower reading of the clause.
+
+**No `TASKS.md` and no `PRD.md`** → there is no contract to build against. Report that, and ask for
+`pdd:plan` first (then `pdd:decompose`, or `pdd:implement` when the plan names one behaviour). Working from
+a chat message with neither is ordinary engineering work; it must not borrow this skill's name to be
+improvised on the spot — and a change smaller than one slice is that same ordinary work even when a PRD
+exists.
 
 ### What this skill does not do
 
@@ -41,9 +60,13 @@ process and must not borrow this skill's name to be improvised on the spot.
 | Judging whether a requirement is right or worth doing | `pdd:plan`, or the user |
 | Quality judgement, adversarial review | `pdd:review`, and only when the user asks |
 | merging accepted work into the working branch, with one commit per accepted task | this skill, §5 |
+| cutting one flow into slices **for one dispatch**, when no `TASKS.md` exists | this skill, Workflow B |
+| persisting that cut as `TASKS.md`, a task file, or anything the next run could read as a contract | `pdd:decompose` — the executor authoring its own contract is the contract editing itself |
 | push, tag, deploy, version numbers | the user's explicit instruction |
 
 ## Preconditions
+
+**Workflow A**
 
 - `TASKS.md`: the DAG (with classes and gates), the register, requirement traces, the wave table.
 - `tasks/<id>-<slug>.md`: each task self-sufficient.
@@ -53,7 +76,17 @@ process and must not borrow this skill's name to be improvised on the spot.
 The contract it executes is read-only except through dated amendments; a contradiction found here stops the
 run and returns to `pdd:decompose`, it is never patched in place.
 
-## Workflow
+**Workflow B**
+
+- `PRD.md` whose §4 has one flow, no §6.2 requirements, and no migration or removal in scope — the five
+  clauses of §B1, decided by reading.
+- The repo, and the real entry point the requirement's observation runs through.
+- No `TASKS.md`. If one appears mid-run it wins: stop and execute it as Workflow A.
+
+The PRD is read-only, its hash recorded before the first dispatch: a requirement edited by the subagent
+that then satisfies it is indistinguishable from a satisfied plan until someone diffs the plan.
+
+## Workflow A — the scheduled DAG (`TASKS.md` exists)
 
 ### 1. Load the contract and check only executability
 
@@ -262,11 +295,120 @@ At the end: DAG completion, task counts and acceptance counts per class, unresol
 command and raw output). Do not enter `pdd:review` on your own initiative, and do not commit, push, tag or
 deploy.
 
+## Workflow B — one flow, no tasks (`PRD.md`, no `TASKS.md`)
+
+`references/workflow-b.md` is the procedure in full. The steps below are the dispatch. Read that file
+before the first brief: the entry test and the cut are where B fails, and neither is improvised well.
+
+### B1. Gate the entry: five clauses, all of them
+
+Decided by reading the PRD, not by estimating effort. All five must hold:
+
+| # | Clause | What fails it |
+| --- | --- | --- |
+| 1 | one flow — §4 has exactly one `F<n>`, and every requirement in scope carries its prefix | a second flow, even one sharing files; a requirement with no flow |
+| 2 | no architectural requirement — §6.2 absent or empty | any `REQ-A`, whose acceptance is a check over a wider scope |
+| 3 | no prerequisite evidence — nothing needs a model or a frozen baseline before the change | an acceptance that exists only after the code does |
+| 4 | one layer, files enumerable now, at most three disjoint groups | paths discovered only by making the change; groups that are not file-disjoint |
+| 5 | no migration, no removal | a schema or data migration, a retired symbol, a dropped dependency |
+
+**A failed clause ends the workflow there.** Report the clause, quote the PRD sentence that fails it, and
+hand back to `pdd:decompose`. Two things are forbidden, because both destroy attribution: **writing a
+minimal `TASKS.md`** so B can run like A (the executor authoring the contract it is judged by), and
+**running "B plus a bit more"** (a second flow does not become admissible because the first went smoothly).
+
+**Below one slice, dispatch nothing.** A typo, a one-line guard, a comment fix is ordinary engineering
+work: B costs a worktree, a brief, an acceptance and a merge, and paying that for one diff is a worse trade
+than doing it.
+
+### B2. Cut the flow into slices, and record the cut before dispatching
+
+A slice is **a set of owned files that serves one requirement and is observable on its own** — the same
+unit as a task, minus the file. One requirement per slice; requirements sharing a file are one slice,
+because two slices cannot both own a path; a type, config key or registration entry travels with the
+behaviour that needs it; order only where an observation needs the earlier result, since B has no gates to
+hold a slice back and an ordering costs a whole batch.
+
+Cap at three. A fourth disjoint group is the first sign clause 4 was optimistic: re-read the entry test
+rather than dispatching it.
+
+One row per slice, written into the run ledger before dispatch and kept out of the repo: slice id, the
+`REQ-F` ids it serves, the exact owned paths, the observation command, the worktree and its baseline
+hashes. Acceptance compares every delta against `owned`, and a cut that lives only in the conversation has
+no rows left to compare against once the conversation is summarised.
+
+### B3. Shared work before dispatch
+
+Workflow A §2 applies unchanged: the working branch recorded before the first worktree exists, one worktree per
+slice, a separate build output directory each, an explicit baseline per worktree, and the shared
+prerequisites frozen by the dispatcher rather than owned by any slice. B's frozen set is often
+proportionally larger — one flow tends to mean one registry entry or one shared type — and it is still the
+dispatcher that writes it.
+
+### B4. Dispatch the whole layer
+
+One `delegate_task` per slice, all in the same layer. The brief's shape is `references/workflow-b.md` §3:
+the PRD's path and the requirement id it executes, the charter's path, its owned paths, its acceptance
+command, the prohibitions and stop conditions that apply in A, and an opening line quoting the requirement
+from §6.1 — the proof it read the requirement, not the brief.
+
+**A slice may not widen its own owned set.** A path outside its row is a stop and a report; the dispatcher
+widens the row explicitly in the ledger, or re-cuts and re-dispatches. A silent widening is the one thing
+acceptance cannot see.
+
+**A slice that fails part-way keeps its work**: commit what passed as `wip(<slice>)`, report the failing
+step with its command, and re-dispatch from that checkpoint — Workflow A §3's rule, unchanged. Do not poll during the
+layer; end the turn and handle the completion notices in batch.
+
+### B5. Accept by the requirement, then merge per batch
+
+| Check | What it means here |
+| --- | --- |
+| requirement observed | the row's command, run from the real entry point, produces what the PRD's "Where it is visible" names |
+| delta ⊆ owned | the diff touches only the row's paths; lockfiles and build output are byproducts, recorded |
+| count > 0 | the observation executed something; selecting zero cases and exiting 0 has not run |
+| no weakened oracle | an assertion the change invalidates is updated or deleted by the same slice, and listed |
+| measurements reproduced | any "measured X" is rerun by the dispatcher before it lands in code, docs or a commit |
+
+**An acceptance that needs a model, a frozen baseline or a checker is not B's**, it is A's: stop and
+promote rather than substituting "the tests pass" for an observation nobody made.
+
+Then Workflow A §5 verbatim — merge into the recorded branch, verify in the main tree, remove the worktree — with one
+difference: the commit names the requirement, since B leaves no task id behind.
+
+```
+feat(<surface>): <what the requirement now does>
+
+REQ-F-<flow>-<n> — <the requirement's sentence, quoted>
+```
+
+### B6. Report, and the exit ramp
+
+The report carries: the entry test clause by clause; the cut table as dispatched, with every mid-run
+widening and why; per slice accepted or retained, its commit and its removed worktree; **every requirement
+in scope marked covered or not covered** (a requirement with no slice is a gap, and "it was implied" is not
+coverage); and any promotion, with the observation that forced it.
+
+**A run that stops being simple is promoted, not stretched.** Any of these ends dispatching and hands back
+to `pdd:decompose`: a second flow or a `REQ-A` turns out to be in scope; the change needs a model, a
+baseline or a checker before it can be accepted; a fourth disjoint slice appears or the owned sets stop
+being disjoint; an accepted delta breaks a sibling's observation, so the slices were ordered dependencies;
+a migration or removal is discovered inside what looked like construction.
+
+Work already merged stays merged and is named as the baseline of the promoted plan; the worktrees are
+closed before the handoff. What does not happen is a second, quieter cut made in the executor's head so the
+run can keep its label.
+
 ## Decision rules
 
 ### Gate enforcement
 
-The dispatcher only **enforces** gates; it does not re-judge whether a gate should exist:
+**These are Workflow A's gates; Workflow B has none.** That absence is why §B1's five clauses are
+admission criteria rather than preferences: with no gate, no class and no retry ladder, a clause that is
+"nearly true" has no mechanism left to hold the run back, and the defect surfaces after the merge as an
+observed behaviour that does not match the plan.
+
+In A, the dispatcher only **enforces** gates; it does not re-judge whether a gate should exist:
 
 - **model gate** unmet (the construction tasks it covers are not all accepted) → do not dispatch A-class
   verification.
@@ -304,6 +446,11 @@ whether to re-dispatch.
 **No plan edits mid-run**: no re-cutting, no merging, no relaxing acceptance, no rewriting a clause because
 "that is how it really is", no numeric exceptions. That is this skill's discipline and what separates it
 from the previous version.
+
+In B the cut plays the contract's part, so the same rule binds it: a slice re-cut after dispatch, an owned
+row widened without a ledger note, a requirement quietly dropped from the covered list — each one means the
+later acceptance no longer corresponds to what was dispatched. A cut that has to change that much is a
+promotion (§B6), and promotion is not a failure of the run.
 
 ### Repo gates
 
@@ -344,12 +491,20 @@ The full catalogue is in `references/pitfalls.md`. The most recurrent:
 - **Leaving worktrees and `pdd/*` branches behind.** A stale worktree keeps an old baseline alive, and the
   next layer picks it up thinking it is current — the run is closed by `git worktree list` and
   `git branch --list 'pdd/*'`, not by the DAG being exhausted.
+- **Entering Workflow B because the change "looked simple".** §B1 is five decidable clauses read off the
+  PRD; an estimate of effort is none of them. The cost of a wrong entry is a flow nobody modelled, merged
+  green.
+- **Accepting a slice because its tests pass.** B has no class table, so there is no weaker standard to
+  fall back on either: the requirement is observed from the real entry point, or the slice is retained.
+- **Persisting the cut as a small `TASKS.md`.** It resumes like a contract while carrying no gates, no
+  classes and no audit, and the next reader trusts it to mean what `TASKS.md` means.
 
 ## Verification
 
-
 > A gate is only a gate while it can fail for the right reason. Before trusting a green run:
 > `skill_view("pdd:report", "references/gate-discipline.md")`.
+
+**Workflow A**
 
 - [ ] every layer was dispatched in the DAG's partial order; no task started before its dependencies were
       accepted;
@@ -377,6 +532,22 @@ The full catalogue is in `references/pitfalls.md`. The most recurrent:
 - [ ] no push, tag, deploy or version change happened;
 - [ ] every stop carries its command, raw output and the contract clause it contradicts.
 
+**Workflow B**
+
+- [ ] all five clauses of §B1 were decided from the PRD, and the verdict is in the report clause by clause;
+- [ ] no `TASKS.md` or `tasks/` was written, and nothing in the plan directory changed except the PRD's
+      recorded hash being compared;
+- [ ] the cut existed in the run ledger before the first brief: every slice names its requirement, its owned
+      paths, its observation command and its worktree;
+- [ ] every requirement in scope is marked covered — none was dropped between the PRD and the slices;
+- [ ] every slice was dispatched in one layer (or the ordering was named, with the observation that forced it),
+      and no slice widened its owned set without a ledger note;
+- [ ] each acceptance is the requirement observed from the real entry point, not a suite that passes;
+- [ ] each commit names its `REQ-F` id and quotes the requirement, and each was verified in the main tree
+      before its worktree was removed;
+- [ ] a run that stopped being simple was promoted to `pdd:decompose` with its merged work named as the
+      baseline — not re-cut inside the executor.
+
 > Cross-skill references name the sibling skill and the file separately:
 > `skill_view("pdd:decompose", "references/task-construction.md")`. Every sibling is registered under
 > this plugin's namespace, so the skill argument always carries the `pdd:` prefix and the path is
@@ -401,6 +572,9 @@ The full catalogue is in `references/pitfalls.md`. The most recurrent:
 - `references/subagent-dispatch.md` — the dispatch paradigm: worktree and baseline, a brief giving the
   `tasks/` directory instead of pasted text, acceptance by class, the full sequence of a layer,
   anti-patterns.
+- `references/workflow-b.md` — Workflow B in full: the five-clause entry test, how one flow becomes slices,
+  the brief with a requirement instead of a task file, acceptance by observation, the report and the exit
+  ramp, anti-patterns.
 - `references/pitfalls.md` — the full catalogue.
 - `references/browser-harness.md` — when the observation is a screenshot, a computed style, font readiness
   or an accessible name: configuration binding, parallel-build risk, font loading.
