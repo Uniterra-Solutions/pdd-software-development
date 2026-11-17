@@ -159,7 +159,8 @@ Three lines across every class:
 - **Rolling a worktree back to the baseline after one failed step.** The steps that passed die with the step
   that failed, and the next attempt re-derives them at the same cost. Commit them as a `wip(<task-id>)`
   checkpoint and re-dispatch from there; a partial delta that is green on its own step check is progress, not
-  contamination.
+  contamination. And for every acceptance criterion in the brief, state the observation that would make it
+  fail: a criterion that cannot go red is not a criterion.
 - **Serialising a task's file-disjoint slices.** Five slices run one after another because "one task, one
   commit" was read as "one workspace". Slices are same-layer dispatches: one worktree each, one commit each at
   merge, and each slice's failure costs only its own wall-clock time.
