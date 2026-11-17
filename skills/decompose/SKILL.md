@@ -1,7 +1,7 @@
 ---
 name: decompose
 description: "Use when a PRD must become typed, dispatched tasks."
-version: 5.2.0
+version: 5.3.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -428,6 +428,12 @@ remodelled.
       references reached zero.
 - [ ] No numeric quota was used as a splitting criterion; any unit beyond "needs two seams to describe" has
       been split or has its coupling written down.
+- [ ] Every comparison-based criterion names one perturbation that must make it red — B's baseline comparison
+      as much as C's injected violation.
+- [ ] Every multi-step task declares its checkpoints; no task, migration or otherwise, describes a
+      "rollback point" instead of a step to resume from.
+- [ ] Every task file states what would make its acceptance fail, not only what the command produces; a
+      criterion satisfied by an artefact existing is sent back.
 
 > Cross-skill references name the sibling skill and the file separately:
 > `skill_view("pdd:decompose", "references/task-construction.md")`. Every sibling is registered under

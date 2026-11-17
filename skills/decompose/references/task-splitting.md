@@ -37,7 +37,10 @@ Each signal is a reason to "go and look once"; decide after measuring the actual
 - the owned files span layers that do not import each other (migration + route, schema + component);
 - some step says "also", "likewise", "repeat the above" — that is talking about a second instance;
 - a task's result can be read only through a surface owned by another task;
-- a task's owned set has grown too large to be read within one session of one subagent.
+- a task's owned set has grown too large to be read within one session of one subagent;
+- its steps fall into groups whose owned files are disjoint and each group is green on its own — cut one
+  same-layer task per group. A commit is not a workspace: "it lands as one commit" is not a reason to keep
+  the groups in one unit.
 
 ## 4. Shapes that should not be cut
 

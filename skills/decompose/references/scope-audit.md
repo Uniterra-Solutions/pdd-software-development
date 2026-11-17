@@ -67,13 +67,18 @@ The criterion must be the one its class demands, and decidable by a command the 
 | --- | --- | --- |
 | construction | this purpose is observable from `<real entry point>` via `<command>` | "the module exists", "tests pass", a purpose only reachable from a unit test |
 | verification A | model at `<path>`, property `<name>` falsifiable within `<budget>`, seeded, shrunk, pinned | a property that restates the implementation; no budget; no seed |
-| verification B | baseline recorded at `<path>` **before** the change, rerun by `<command>`, compared bit for bit | a baseline with no timestamp relative to the change; "behaviour unchanged" with no comparison |
+| verification B | baseline recorded at `<path>` **before** the change, rerun by `<command>`, compared bit for bit, **plus one perturbation that must make the comparison fail** | a baseline with no timestamp relative to the change; "behaviour unchanged" with no comparison; no perturbation step — a comparison nobody has seen fail |
 | verification C | rule `<quoted REQ-A>`, check at `<path>`, green before the change, still green after, deliberate red recorded | "the check passes"; no injected-violation step; no phase-two emptiness for a rule already violated |
 | migration | oracle `<path/command>` and retention list; source set → target set; old path removed or expiring | no oracle; a retention list of one item; "behaviour preserved" |
 | removal | absence proof (`grep`, compile, dependency graph) prints zero; the tests that die with it are deleted | "removed"; references to a caller still present; tests left behind |
 
 Also: is a numeric quota acting as the criterion anywhere (a file cap, a step cap, "no more than N lines")?
 A criterion of that shape is satisfiable by mutilating the work.
+
+Also: is the only observable something the command **produces** rather than something it **decides** — a file
+it writes, a report it prints, an exit code from a tool nobody has seen fail? "The command wrote `out.json`",
+"the module is present", "the checker is green" are satisfied by the artefact existing. The criterion must
+name what would make it red.
 
 ### Boundary
 

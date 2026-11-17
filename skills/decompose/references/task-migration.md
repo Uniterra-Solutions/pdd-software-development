@@ -13,7 +13,10 @@
 1. **Oracle present** — the existing suite is sufficient to decide, or a previous verification task has already established a model / baseline. A migration without an oracle must not be dispatched; that is blind editing. If there is none, spend one verification task first to buy an oracle; that is usually cheaper than the migration itself.
 - **Architecture check present (`REQ-A`)** — if this migration serves an architecture requirement, the executable check for that requirement must already exist and be all green. That check is this task's acceptance; the behavioural oracle is only a guard.
 2. **Retention list** — the flows, behaviours and structural constraints this relocation must retain (dependency direction, export surface, execution-time budget), listed one by one. Writing "behaviour unchanged" amounts to writing nothing.
-3. **Slices and rollback points** — each step should be independently green; if any step is not green, stop and do not stack on top of it.
+3. **Slices and checkpoints** — each step should be independently green; if any step is not green, stop and
+   do not stack on top of it. The steps that are green are committed as they pass, so a failed run resumes
+   after them instead of from the baseline; slices whose owned files are disjoint may be dispatched in the
+   same layer.
 
 ## What to write in the file
 
@@ -22,7 +25,9 @@
 3. **Preserved** — the retention list (flow id, constraint name, API surface).
 4. **Files owned** — both the source side and the target side belong to this task; one writer at a time.
 5. **Steps** — each step is one structural action; the last step removes the old path (leaving no long-term coexistence, unless there is an explicit deprecation window and expiry condition).
-6. **Reversible** — where the rollback points are.
+6. **Checkpoints** — which step's state is committed on its own, and the step a re-dispatched run starts from.
+   Not "where the rollback points are": a rollback point invites returning the whole worktree to the baseline,
+   which discards the steps that passed.
 
 ## Writing rules
 

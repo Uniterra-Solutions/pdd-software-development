@@ -82,5 +82,7 @@ When the node count grows but the width does not, check each of these:
 - [ ] the class is one of the four, and no task owns both production files and model files;
 - [ ] the owned set is the minimal sufficient set for this thing; larger ownership is traded for identifiable coupling;
 - [ ] the steps are ordered, each step changes one thing and can be rolled back independently;
+- [ ] a multi-step task declares its checkpoints — which steps commit separately, and the step a failed run
+      resumes from — so a failure costs the failing step, not the whole task;
 - [ ] every owned path is named after the function it performs and contains no task id (`tests/t3_router.spec.ts`, `T03-x`, `guard_t3`, `test_t3`, `task_3` are all disallowed);
 - [ ] when a task breaks, it does not make the reader suspect its siblings.
