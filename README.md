@@ -1,9 +1,10 @@
 # pdd-software-development
 
-A Hermes plugin that ships **Proposition-Driven Development (PDD)** as five bundled skills, plus four
+A Hermes plugin that ships **Proposition-Driven Development (PDD)** as five bundled skills, plus six
 companions: one maps what the code does today, one retires the plans that no longer do, one turns a known
-failure with an unknown trigger into a machine-found one, and one repairs the skills themselves when the
-process misfires.
+failure with an unknown trigger into a machine-found one, one repairs the skills themselves when the
+process misfires, one clarifies an unfinished request by questions before a PRD is written, and one draws
+that clarified record so its structure can be argued with.
 
 PDD is a business-first spec workflow: the PRD describes business logic and observable behaviour,
 decomposition yields four classes of task, and verification exhausts each operation's decision table to a
@@ -35,6 +36,8 @@ same-named skill on disk — call the qualified name:
 
 | Qualified name | What it does |
 | --- | --- |
+| `pdd:brainstorm` | Companion: the request clarified by Socratic questions before a PRD is written. One question per turn, no answers supplied by the agent, every exchange appended to `<plan-dir>/notes/qa.md` before the next question; closes on four tests with `notes/summary.md` stating only what the user established, each line tagged to the exchange it rests on |
+| `pdd:visualize` | Companion: `<plan-dir>/notes/summary.md` drawn as two to four Mermaid diagrams, one question per frame, open questions dashed, every label taken from the record's own vocabulary; corrections go upstream to the summary first, and each one is appended to `notes/diagrams/REVISIONS.md` with the user's words |
 | `pdd:plan` | Write the PRD: business model, one behaviour section per flow, `REQ-F` / `REQ-A` |
 | `pdd:decompose` | Turn the PRD into four classes of task (construction / verification / migration / removal), one DAG, two gates, then audit the cut's scope and acceptance criteria with one read-only auditor per three tasks |
 | `pdd:implement` | Dispatch the batch, accept each unit against the plan's own standard, merge it back into the recorded working branch and close its worktree before the next opens. Two entries: the `TASKS.md` DAG batch by batch, accepted by class; or — with no tasks — one PRD flow the dispatcher cuts into slices itself, accepted against the `REQ-F` each serves, promoted back to `pdd:decompose` the moment the work stops being small |
@@ -65,6 +68,8 @@ itself whenever the change binds to an external framework.
 | 5 | `pdd:review` | An independent reading of the PRD and the tasks, against the delivered diff | **optional** — see below |
 
 The companions sit outside the chain: `pdd:study` runs before step 1 when the codebase has no map,
+`pdd:brainstorm` runs before step 1 when the request itself is unfinished (it opens the plan directory and
+fills `notes/`, writing no PRD section), `pdd:visualize` runs whenever that record needs to be seen,
 `pdd:archive` runs after step 5 when the plan is retired, and `pdd:report` runs whenever a step misfires.
 
 ### Step 0 — vendor the frameworks you bind to, then study them
@@ -207,6 +212,8 @@ the process accepts.
 ```
 plugin.yaml            manifest (name: pdd)
 __init__.py            register(ctx) -> ctx.register_skill() per skill directory
+skills/brainstorm/     SKILL.md + references/
+skills/visualize/      SKILL.md + references/
 skills/plan/           SKILL.md + assets/
 skills/decompose/      SKILL.md + assets/ + references/
 skills/implement/      SKILL.md + references/

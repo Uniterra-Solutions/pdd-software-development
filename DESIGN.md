@@ -232,5 +232,5 @@ older claim is one `git show` away, and the deletion commit names the decisions 
 
 ---
 
-*Applies to plugin `pdd` 1.10.0: `pdd:plan`, `pdd:decompose`, `pdd:implement`, `pdd:review`, `pdd:explain`, the
+*Applies to plugin `pdd` 1.11.0: `pdd:plan`, `pdd:decompose`, `pdd:implement`, `pdd:review`, `pdd:explain`, the
 companions `pdd:study` and `pdd:archive`.*
