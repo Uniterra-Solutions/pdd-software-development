@@ -203,7 +203,7 @@ crates/api   base c44da602 → HEAD
 
 Two rows cited `src/handlers.rs:20` and `:30`; the added line moved them to `:21` and `:31`. A third
 row cited `src/stable.rs:7`, whose file did not move, so it had to survive verbatim — which is exactly
-what `--verify` checks, and what it caught when the row was dropped in testing.
+what the diff read looks for, and what it caught when the row was dropped in testing.
 
 ## 11. Anti-patterns
 

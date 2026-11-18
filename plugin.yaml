@@ -1,5 +1,5 @@
 name: pdd
-version: 1.11.0
+version: 1.11.1
 description: Proposition-Driven Development — five bundled skills (pdd:plan, pdd:decompose, pdd:implement, pdd:review, pdd:explain) for business-first specs, four task classes and flow-level verification, plus pdd:study, which reconstructs a codebase's business branches into per-directory AGENTS.md files and refreshes them from the diff when the tree moves, pdd:archive, which turns superseded plans into one history of decisions and eras and then deletes them, and pdd:report, which turns an incident in the process into one abstract anti-pattern plus one class of fix (prompt, information, code or process) applied in the same session and recorded under docs/retro/, pdd:reproduce, which turns a known failure with an unknown trigger into a bounded search with eight gates from fingerprint to pinned reproducer, pdd:brainstorm, which clarifies an unfinished request by Socratic questions and records the exchanges under <plan-dir>/notes/ without writing a PRD section, and pdd:visualize, which draws that record as diagrams with open questions dashed and corrections routed upstream to the summary first.
 author: Uniterra Solutions Ltd.
 license: MIT

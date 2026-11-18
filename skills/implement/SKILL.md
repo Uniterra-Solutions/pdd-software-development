@@ -1,7 +1,7 @@
 ---
 name: implement
 description: "Use when a plan must be built: a TASKS.md DAG, or one PRD flow with no tasks."
-version: 3.0.0
+version: 3.0.1
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -156,11 +156,11 @@ contract files and each worktree's build output directory are sequential. The ma
 never commit. So the number of worktrees follows the number of disjoint file sets and nothing else; "one
 commit" constrains what a commit may contain, never how many worktrees may run at once.
 
-**Measurement tasks (wall-clock baselines, `--record`, performance budgets) run in a round of their own.**
+**Measurement tasks (wall-clock baselines, performance budgets) run in a round of their own.**
 Their product is a median; sharing CPU with any other task measures the other task's load, and that number
 later becomes the before. Re-recording a baseline has one more precondition: the suite must be green — run
-the full suite once to confirm, then `--record`; if the script warns that the baseline records a red suite,
-delete that baseline, fix the reds and record again, and never keep the red numbers as a reference point.
+the full suite once to confirm, then record the median. A baseline whose recorded run was red is deleted,
+the reds are fixed and the numbers are taken again; the red numbers are never kept as a reference point.
 
 ### 4. Accept by class
 

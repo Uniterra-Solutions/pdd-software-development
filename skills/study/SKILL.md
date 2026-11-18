@@ -1,7 +1,7 @@
 ---
 name: study
 description: "Use when a repo's business branches must become AGENTS.md."
-version: 2.0.0
+version: 2.0.1
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -348,8 +348,8 @@ Delta refresh adds the three reads of §8 and five judgement items:
   against a tree that no longer exists.
 - **A delta that rebuilds the file.** A subagent re-reads the unit and rewrites the whole block, so rows the
   diff never touched disappear quietly and the knowledge base's own diff shows churn no code change explains
-  → rows whose cited file ended the window unchanged are copied verbatim, and `--verify` fails when they are
-  not.
+  → rows whose cited file ended the window unchanged are copied verbatim, and the knowledge base's own diff
+  is read for exactly that: a verbatim row that moved is reverted, not accepted as an improvement.
 - **Citations resolved against a unit directory instead of the repository root.** Every `site` and every
   auxiliary `path:line` is repository-relative, so reads made from `crates/x/` turn nine clean units into nine
   "cited file does not exist". Open every citation from `{project_root}` and attribute each miss to the row

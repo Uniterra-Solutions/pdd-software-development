@@ -1,7 +1,7 @@
 ---
 name: archive
 description: "Use when old plans must become one history document."
-version: 2.0.0
+version: 2.0.1
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -204,7 +204,7 @@ Judgement (read by the main agent):
   `because` still splits it and the row drops out of the table entirely — the conflict rule, the graph
   agreement and the id-for-id count then stop seeing it (a 528-row register rendering as 523, with only the
   missing ids to show for it) → write `│` or spell the alternation out, and count the rows against the ids.
-- **`--render` as root.** `mmdc` launches Chrome with no `--no-sandbox`, which fails when the process runs as
+- **Rendering as root.** `mmdc` launches Chrome with no `--no-sandbox`, which fails when the process runs as
   root and reports the failure once per block — indistinguishable from a mermaid syntax error. Pass
   `{"args":["--no-sandbox","--disable-setuid-sandbox"]}` as a puppeteer config on any root box, so that a
   render failure is a real syntax error rather than a sandbox complaint.
