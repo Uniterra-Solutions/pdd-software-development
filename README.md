@@ -53,7 +53,8 @@ skill_view("pdd:decompose", "references/task-verification.md")
 ## The recommended flow
 
 Five steps, in this order. Two of them are conditional, and the conditions are properties of the work
-rather than matters of preference.
+rather than matters of preference. Step 0 below is not a skill call but a precondition, and it pays for
+itself whenever the change binds to an external framework.
 
 | # | Step | What it settles | Required |
 | --- | --- | --- | --- |
@@ -65,6 +66,32 @@ rather than matters of preference.
 
 The companions sit outside the chain: `pdd:study` runs before step 1 when the codebase has no map,
 `pdd:archive` runs after step 5 when the plan is retired, and `pdd:report` runs whenever a step misfires.
+
+### Step 0 — vendor the frameworks you bind to, then study them
+
+Before the first line of code goes against an external framework — an SDK, a state-machine library, an ORM,
+a protocol client — pin the **latest stable release** into the repository and vendor the part of it the work
+will actually read. Then run `pdd:study` over the vendored tree, so the framework's real surface enters the
+knowledge index with citations.
+
+Three things follow, and each is measurable:
+
+- **The version the agent reads is the version it compiles against.** An API recalled from training data and
+  an API in the pinned release are different objects; the gap surfaces as "it compiles in my head", which is
+  the most expensive class of defect to debug because the code is plausible at every line.
+- **Token cost falls, because retrieval becomes a local read.** A cited `file:line` inside the vendored tree
+  replaces fetching documentation, pulling a release, or reconstructing an interface from memory, and the
+  AGENTS.md branch table keeps the map small so the reads stay targeted.
+- **Plans stop inventing adapters.** With the framework's entry points and branch tables recorded,
+  `pdd:plan` names the seam that exists instead of an abstraction the framework never had.
+
+Pin what is stable rather than what is newest: a pre-release API is a moving target, and stopping the
+movement is the entire point. Vendor only the surface you bind to — the modules whose API the plan calls —
+and record the tag and commit in the AGENTS.md provenance block.
+
+Two rules keep this from becoming the drift problem it is meant to prevent. An upgrade is a **migration
+task** with a B-class baseline, not an in-place bump. A refresh of the vendored copy is a `pdd:study` delta
+run, not a rebuild. A vendored copy nobody refreshes is worse than no copy, because it is believed.
 
 ### Step 3 — why `explain` sits before `implement`
 
