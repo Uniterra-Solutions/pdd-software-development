@@ -1,7 +1,7 @@
 ---
 name: review
 description: "Use when a finished plan needs an independent verdict."
-version: 2.3.0
+version: 2.4.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -46,7 +46,8 @@ tasks and `pdd:implement` dispatches them.
   in-scope task files makes the scope partition a guess and misses cross-task contract conflicts.
 - **A target**: branch, commit range, diff, or an explicit module list, extended to the production entry
   points and to the callers of every changed surface.
-- **Evidence in place**: the flow's model and pins (A), the baseline and the rerun comparison (B), the
+- **Evidence in place**: the flow's reference model, both arrays with `k` declared, and the recorded
+   mutation that made the suite redden (A), the baseline and the rerun comparison (B), the
   architecture check and the injected-violation record (C). A missing item is "unverified" — record it
   before reading any code.
 - **Reviewers receive no hypotheses**: the brief gives paths and the questions to answer, never "I suspect a
@@ -84,7 +85,7 @@ never compress the brief.
 | Task `Class` | Reviewer | What it reviews |
 | --- | --- | --- |
 | `construction` | **test construction** | behaviour: whether existing assertions are hollow, counterexamples, boundaries, state transitions |
-| `verification` (A/B/C) | **test construction** | the check itself: model coverage, bit-comparable baseline, whether the C check bites |
+| `verification` (A/B/C) | **test construction** | the check itself: `k` recomputable, arrays reconciled, matrix complete, bit-comparable baseline, whether the C check bites |
 | `migration` | **code reading** | retention list, source→target, old paths, coexistence and deprecation |
 | `removal` | **code reading** | absence proof, the tests that die with it, residue |
 
@@ -165,8 +166,8 @@ short, use waves, but wave order obeys the DAG's partial order.
 
 | Axis | Verdict | Condition |
 | --- | --- | --- |
-| Functional | pass | every in-scope flow has a model, covers the changed seams, and no counterexample reproduces |
-| | pass with findings | counterexamples or hollow properties exist, at acceptable severity |
+| Functional | pass | every in-scope flow has its decision tables transcribed, `k` declared and recomputable, both arrays reconciled, and no row contradicts the table |
+| | pass with findings | failing rows, hollow arrays, or an over-claimed `k` exist, at acceptable severity |
 | | fail | one counterexample breaks some `REQ-F` |
 | Architectural | pass | every `REQ-A` has a C check, the check bites, the code obeys |
 | | pass with findings | the check exists and bites, but there are local violations or uncovered scope |
@@ -247,7 +248,7 @@ edits no plan.
 - `references/subagent-invocation.md` — dispatch: the two mandatory paths, the brief's minimum content, the
   dispatch shape, collection.
 - `references/reviewer-test-construction.md` — test construction: powers, strengthen before adding,
-  assertions must require behaviour, red leg and green leg, tests must have an owner.
+   assertions must require behaviour, the `k`-audit of an array, red leg and green leg, ownership.
 - `references/reviewer-code-reading.md` — code reading: read-only, four kinds of question
   (`REQ-A`/migration/removal/subjective), `clause` mandatory, the order to read in.
 - `references/finding-schema.md` — finding fields, the two axes' evidence requirements, the adversarial case

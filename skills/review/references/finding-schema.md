@@ -76,7 +76,7 @@ For every caller/callee or producer/consumer pair:
 - concurrent interleavings and duplicate delivery;
 - the production call chain from entry point to the modified surface, with `file:line`.
 
-A property on the boundary must quantify the states of both sides and be observed at the seam. If the observation falls only inside one of the sides, that boundary has not been modelled.
+A claim on the boundary must quantify the states of both sides and be observed at the seam. If the observation falls only inside one of the sides, that boundary has not been modelled.
 
 ## 6. Architecture review checklist (for the code-review type)
 

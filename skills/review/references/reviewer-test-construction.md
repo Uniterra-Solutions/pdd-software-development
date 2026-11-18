@@ -41,7 +41,35 @@ On writing:
 - do not assert implementation details such as shape, symbol existence, call counts (unless the PRD explicitly requires it);
 - each assertion expresses one claim only; two claims need two assertions, do not chain them with one `and`.
 
-## 4. Run, shrink, two legs
+## 4. Is the array complete, and is its `k` honest
+
+A counterexample proves something only if the array that produced it was carrying the claim. For a
+`verification` A task, audit the claim before reading any code — seven checks, all mechanical:
+
+1. **`k` recomputes.** Take the longest conjunct in the transcribed decision table. It must equal the `k`
+   declared in the harness. A declared `k` lower than the table's own fan-in turns a bounded claim into a
+   false one — highest severity in this axis.
+2. **PTEST reconciles.** Count rows against terms: one row per term, all of that term's literals positive and
+   every other term's negated. Rows missing or duplicated are a construction error, not a style issue.
+3. **Negative rows name a class.** Every NTEST row's expectation is a class from the table. "an error",
+   "failed", or a blank cell is a finding: an unnamed refusal cannot be pinned by anything.
+4. **The matrix is complete.** Every `(operation x state)` cell the flow declares appears in some row.
+5. **Boundaries appear.** Every declared class boundary appears in at least one row per variable. A variable
+   with a single class is a sample wearing a partition's name.
+6. **The negative control bites.** Mutate one literal in the reference model and the suite must redden;
+   restore and confirm green, and record the mutation that was made. A suite that survives a mutated table is
+   certifying air.
+7. **The report's claim is scoped.** "Exhaustively tested" without `k` is an over-claim and a finding on its
+   own, whatever the run did.
+
+**The one thing these checks cannot see is a wrong table.** The oracle is free here — every row of one array
+expects the same outcome — so a table transcribed from the implementation hands back a portrait of the
+implementation and passes all seven checks. Ask where the table came from: it must be PRD §3, and the
+transcription must be readable against the PRD line by line. A table generated from the code is a
+self-certification, and it is the failure mode that replaces this method's flakiness with silence.
+
+
+## 5. Run, reduce, two legs
 
 1. **Red leg**: run it on this code you are reviewing, paste the failure output and the minimal input.
 2. **Reduce to the row's literals**: a failure from a decision-table array is already minimal — its literal assignment *is* the claim, so paste it as it stands. A case that came from a hand-written sequence is shrunk to the shortest sequence and the smallest parameters that still fail.
@@ -50,11 +78,11 @@ On writing:
 
 How to construct cases is in the adversarial checklist in `references/finding-schema.md` §3: value boundaries, sequence boundaries, state-machine boundaries, cross-module, concurrency, failure injection, resource lifecycle. At minimum cover **every legal and illegal state transition** of the flow this unit belongs to, plus the boundaries the PRD specifies.
 
-## 5. A new test must have an owner
+## 6. A new test must have an owner
 
 Every test you add or strengthen must be able to answer two things: which flow it belongs to, and which `REQ-F` it corresponds to. State this in the report. This is an acceptance condition, not paperwork - a test without an owner has nobody maintaining it in the next round and nobody daring to delete it, which is exactly where "tests only grow, never shrink" comes from.
 
-## 6. Output
+## 7. Output
 
 Per the fields of `references/finding-schema.md`, `axis: functional`, and:
 
@@ -65,7 +93,7 @@ Per the fields of `references/finding-schema.md`, `axis: functional`, and:
 - `evidence`: patch path (test changes) + the output of the red leg and the green leg;
 - for areas you could not model or could not test, mark `(unmodeled: what + why)`.
 
-## 7. Failure modes
+## 8. Failure modes
 
 | Shape | Cost |
 | --- | --- |
@@ -75,3 +103,4 @@ Per the fields of `references/finding-schema.md`, `axis: functional`, and:
 | Relaxing the domain to make the test green | The claim becomes trivially true, which equals no review |
 | Casually changing the production code | The boundary between evidence and implementation disappears |
 | Putting the test in `review_test/` | The product gate never collects it, and it disappears as soon as the worktree is deleted |
+| Accepting a table transcribed from the implementation | All seven `k`-audit checks pass, and the suite certifies the code against itself |
