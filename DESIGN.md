@@ -28,7 +28,7 @@ This is the premise the rest of the document reasons from: *code has become chea
 
 ---
 
-## 2. The thesis: formal modelling as bounded-step falsification
+## 2. The thesis: enumerate to a declared strength, then refuse to claim more
 
 We do not aim to prove programs correct. We aim to make every claim **refutable in a bounded number of steps, with a reproducible witness**.
 
@@ -37,14 +37,14 @@ A claim qualifies for the process only if it satisfies three conditions:
 | Condition | Meaning | Failure mode it excludes |
 | --- | --- | --- |
 | **Decidable** | A command returns pass or fail; no judgement call at the moment of acceptance. | "Looks right", "seems reasonable", reviewer mood as an oracle. |
-| **Bounded** | The search space is finite, or is a sampled space with a declared budget (draws, seeds, wall-clock). | "Tested thoroughly"; unbounded coverage claims that no one can audit. |
+| **Bounded** | The space is finite, and completeness is claimed only up to a declared interaction strength `k`. | "Tested thoroughly"; a completeness claim with no strength attached to it. |
 | **Attributable** | A failure names the cause — a seed, a minimal sequence, a rule, a file. | "Something broke"; failures that survive as anecdotes rather than as evidence. |
 
-Formal modelling is the instrument, not the objective. A model of a business flow — its command set, its state machine, its invariants — converts an unbounded question (*does this work?*) into a finite one (*do these properties hold over these generators, within this budget?*). Property-based testing supplies the decision procedure; shrinking supplies the witness; pinning supplies the regression. The result is not a proof but something operationally stronger than a test suite: **a search that terminates with either a counterexample or an explicit statement of what was searched.**
+A decision table is the instrument, not the objective. It converts an unbounded question (*does this work?*) into a finite one (*does the implementation agree with every combination of the variables this decision depends on?*). What remains after that conversion is smaller than anyone expects: if no conjunct in a rule has more than `k` literals, then `k`-way combinations reach every combination the decision can distinguish, so the space is not sampled — it is enumerated. The result is not a proof of correctness, but it is stronger than a test suite: **a green run states the strength it was exhaustive to, and a red one hands back the literal assignment that broke it.**
 
-What modelling does not supply is completeness. A green model means *no counterexample was found inside the stated budget* — never *the code is correct*. The design absorbs this limitation in three ways:
+What enumeration does not supply is completeness beyond `k`, and the design says so rather than rounding it up. A green array means *no defect outside a term of `k` literals* — never *the code is correct*. The design absorbs the limitation in three ways:
 
-- a green claim never carries more weight than its budget, which is why budgets are written down rather than assumed;
+- a green claim never carries more weight than its `k`, which is written into the report beside it rather than assumed;
 - where behaviour cannot discriminate between correct and incorrect designs (structure, dependency direction, layering), acceptance moves to a **structural check** instead of a behavioural test (§4);
 - where neither can decide, the process says so and routes the judgement to review, rather than manufacturing a test that would only appear to decide.
 
@@ -56,7 +56,7 @@ The acceptance method decides the kind of requirement — not its size, not its 
 
 | Kind | Content | Acceptance object | Identifier |
 | --- | --- | --- | --- |
-| **Functional** | Adds or changes one observable behaviour | The behaviour becomes falsifiable once modelled: a flow, a command, a refusal class, an invariant | `REQ-F-<flow>-<n>` |
+| **Functional** | Adds or changes one observable behaviour | The behaviour becomes decidable once its decision table exists: rows, refusal classes, class partitions, `k` | `REQ-F-<flow>-<n>` |
 | **Architectural** | The code obeys a structural rule: boundaries, dependency directions, surface, performance budget | **The code obeys the architecture itself**, decided by an executable check — not by a behavioural test | `REQ-A-<n>` |
 
 The distinction exists because the two were previously conflated, and the conflation produced two symmetrical failures:
@@ -75,7 +75,7 @@ Tasks are not classified by motive ("this is a cleanup", "this is a new feature"
 | Class | What changes | Acceptance object | Evidence required |
 | --- | --- | --- | --- |
 | **Construction** | A behaviour that did not exist | The new behaviour is usable from the real entry point | The entry point triggered; the affected suites and the typecheck still green |
-| **Verification** | Nothing in production; a model, a baseline or a check | Behaviour becomes modelled (A), preserved (B) or structurally constrained (C) | Trace + seed + shrunk counterexample; bit-identical rerun; a deliberate red |
+| **Verification** | Nothing in production; a model, a baseline or a check | Behaviour becomes exhaustively covered to `k` (A), preserved (B) or structurally constrained (C) | Both arrays with `k` recomputable; bit-identical rerun; a mutated table that reddens the suite |
 | **Migration** | Production code, tests and docs move; behaviour does not | Equivalence under an oracle, with a retention list | Oracle output, source→target set comparison, old path removed |
 | **Removal** | Something ceases to exist | Non-existence, proven | Zero references, compile passes, no node left in the dependency graph, tests that die with it deleted |
 
@@ -93,21 +93,21 @@ What the classification buys:
 
 ## 5. Verification methodology
 
-### 5.1 The unit is the business flow, not the task and not the file
+### 5.1 The unit of testing is a decision table; the flow owns it
 
-A **flow** is what a person does from trigger to outcome: a command set acting on a state machine, governed by invariants. It is the unit the plan describes, the unit decomposition schedules, and the unit verification models.
+A **flow** is what a person does from trigger to outcome: a command set acting on a state machine, governed by invariants. It is the unit the plan describes, the unit decomposition schedules, and the unit one verification task owns. Inside it, the unit of testing is the **decision table** of each operation — because that is the smallest object whose combinations can be enumerated.
 
 The reason is arithmetic rather than taste. When the unit of verification was the task, the number of tests was a function of the number of tasks, and the number of tasks is set by scheduling constraints — parallelism, attribution, review scope. That is a formula for unbounded growth: every improvement in dispatch efficiency produced more tests. With the flow as the unit, the count is:
 
-> *(flows touched × properties per flow) + distinct counterexamples*
+> *(terms across the flow's tables) + (covering-array rows: v^k · log n)*
 
-which is bounded by the size of the business surface, not by the size of the schedule.
+which is bounded by the size of the business surface — its rule count and its value classes — not by the size of the schedule. The first term is linear in the rules; the second grows with the logarithm of the variable count and with the strength `k`, which is why a wide table is split rather than weakened.
 
 ### 5.2 Three shapes of verification, each with its own logic
 
 | Shape | Question | Used when | Evidence |
 | --- | --- | --- | --- |
-| **A — modelling** | Does the new behaviour satisfy its properties? | After construction is accepted | Trace, seed, shrunk minimal sequence, coverage reading |
+| **A — decision-table coverage** | Does the new behaviour agree with its table for every combination the decision depends on? | After construction is accepted | PTEST (one row per term, the other terms negated), NTEST (strength-`k` array under the negation constraint), `k`, the class partition, and the mutated-table control |
 | **B — behavioural guard** | Is behaviour preserved exactly? | Before and after a migration | Baseline frozen *before* the change; the same command rerun bit-identical |
 | **C — architecture check** | Does the code obey the structural rule? | For every `REQ-A` | Green before, green after, and **one injected violation must turn it red** |
 
@@ -126,7 +126,8 @@ Four rules carry most of the regime's reliability:
 
 - **Every check must have a demonstrated failure mode.** The worker executes this: perturb one byte at an exactly-once anchor, run the check, restore, rerun. Red under the perturbation, green after restoration, byte-identical — or the check cannot see that error.
 - **Count > 0.** Green without executed volume is unfinished work. Selecting zero cases and exiting zero is not a pass.
-- **A flaky red is measured, not rerun.** A property that fails once in a few dozen runs is usually drawing a rare value class. Acceptance requires *N random seeds (≥ 20) green plus the fixed seed green*, and the fix must narrow the value domain or pin the triggering value — not raise the draw count until the symptom hides.
+- **A red that moves is a changed expectation, not a rerun.** The arrays are generated from the table, so a run is deterministic: the same rows, the same outcomes. If a failure stops reproducing without a diff, either the table changed or the implementation was edited — and re-running until green is how the second one hides.
+- **Completeness is auditable at review time.** Under sampling, "is this enough?" was an opinion; here it is an arithmetic check — recompute `k`, reconcile rows against terms, walk the `(operation × state)` matrix. A reviewer who cannot do that has been handed a claim, not evidence.
 - **The cut is audited by readers who did not write it.** A wrong scope or an undecidable acceptance criterion is invisible to the author of the cut, because the cut was made from the same understanding that produced the error, and it is expensive to the reader, because the mistake surfaces only after the work behind the task is sunk. `ceil(n/3)` read-only auditors therefore read the finished cut, three tasks each, and their findings are reproduced by the main agent before any of them is adopted.
 
 ### 5.5 What is deliberately absent
@@ -134,6 +135,7 @@ Four rules carry most of the regime's reliability:
 | Removed | Reason |
 | --- | --- |
 | A proposition per task, with a proof pair | Ties evidence volume to schedule size; produces tests ≥ tasks |
+| Property-based sampling of a decision table | The discrete space is enumerable; sampling it trades a bounded, auditable claim for a statistical one, and pays generator and shrink maintenance for the privilege |
 | A designated test site per task | Makes the test an artefact of the task rather than of the flow |
 | Mutation testing as a per-commit gate | Cost scales with code, benefit does not; kept as a targeted control |
 | Document linters | They score presence. Once presence is scored, the author optimises only the checkable half and ships a well-formed empty plan |
@@ -170,9 +172,9 @@ The invariant underneath: **no role may silently rewrite another role's artifact
 
 | Cost | Nature |
 | --- | --- |
-| Upfront modelling | Properties must be written before they can be trusted; that is real design work the production side does not perform |
-| Model maintenance | The model is an artifact with an owner and can rot; a stale model is worse than none because it is believed |
-| Cross-flow integration | No single flow model covers interactions between flows; review carries that load |
+| Table transcription | The decision table must be written before it can be trusted, and every value class declared; that is real design work the production side does not perform |
+| Table drift | The transcribed table is a second copy of the rules and rots silently; the only detector is the mutated-table control, so a table nobody mutates is a table nobody has checked |
+| Cross-flow integration | No single flow's tables cover interactions between flows; review carries that load |
 | Discipline is load-bearing | Drop the class table or a gate and the system degrades quietly into "tests as artefacts" — the previous failure, reintroduced without a symptom |
 
 ---
@@ -181,14 +183,14 @@ The invariant underneath: **no role may silently rewrite another role's artifact
 
 1. **Cross-flow and emergent behaviour.** Flow-level modelling bounds cost precisely because it does not model composition. Integration defects between flows are found by review and by production, not by the oracle.
 2. **Subjective properties.** Naming, layering intent, and whether a seam is in the right place remain review-only. Two reviewer types narrow the variance; they do not mechanise it.
-3. **Budget calibration.** Draw counts, wall-clock ceilings and shrink bounds are stated defaults, not values calibrated per repository.
+3. **`k` and class calibration.** The class partition is a modelling judgement, and a partition with one class per variable is a sample wearing a table's name. No rule yet decides how finely a numeric domain must be cut.
 4. **The residual human role.** Defining business semantics, naming the refusal classes, and deciding whether a modelled invariant is the *right* invariant. Automation removes the typing; it does not remove the judgement.
 
 ---
 
 ## 10. One sentence
 
-> PDD is an automated code-production process in which every change must arrive with a bounded, reproducible refutation procedure; tasks are classified by the acceptance object they actually have rather than by the intent behind them; and the business flow — not the task, not the file — is the unit of modelling, because the cost of writing code has collapsed while the cost of believing it has not.
+> PDD is an automated code-production process in which every change must arrive with a bounded, reproducible refutation procedure; tasks are classified by the acceptance object they actually have rather than by the intent behind them; and the decision table — owned by a flow, never by a task or a file — is the unit of testing, because its combinations can be enumerated to a stated strength while a sample of them can only be believed.
 
 ---
 
@@ -210,7 +212,7 @@ object of its own.
 - **Its honest limit.** A branch table cannot tell you whether a decision is the right one, whether a seam sits
   in the place a maintainer would put it, or what the product is for. It tells you where the code changes
   behaviour and what makes each change fire — the ground truth that §3's typed acceptance, §4's class table and
-  §5's flow models all assume someone already has.
+  §5's decision tables all assume someone already has.
 - **The second run is a diff, not a study.** Once the files exist, the question changes from "what does this do"
   to "what does it do now that they do not say", and the only thing that answers it cheaply is the history the
   provenance block already names. The base is therefore per file rather than per repository — files studied at
@@ -230,5 +232,5 @@ older claim is one `git show` away, and the deletion commit names the decisions 
 
 ---
 
-*Applies to plugin `pdd` 1.4.0: `pdd:plan`, `pdd:decompose`, `pdd:implement`, `pdd:review`, `pdd:explain`, and the
+*Applies to plugin `pdd` 1.10.0: `pdd:plan`, `pdd:decompose`, `pdd:implement`, `pdd:review`, `pdd:explain`, the
 companions `pdd:study` and `pdd:archive`.*

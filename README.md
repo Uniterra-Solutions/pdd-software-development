@@ -6,8 +6,8 @@ failure with an unknown trigger into a machine-found one, and one repairs the sk
 process misfires.
 
 PDD is a business-first spec workflow: the PRD describes business logic and observable behaviour,
-decomposition yields four classes of task, and verification is modelled per business flow rather
-than per task. `pdd:study` reconstructs the branches a codebase already has, with citations, before
+decomposition yields four classes of task, and verification exhausts each operation's decision table to a
+declared interaction strength rather than sampling a flow or accumulating a test per task. `pdd:study` reconstructs the branches a codebase already has, with citations, before
 anything is planned against them; `pdd:archive` turns a pile of superseded plans into one history of
 decisions and eras, then deletes the pile — the reasoning survives, the archaeology does not.
 
@@ -129,16 +129,42 @@ disk before the next session starts.
   the plugin is enabled, under their qualified names.
 - Disabling the plugin removes them from the index without deleting anything.
 
+## How verification works
+
+A decision table is an enumerable object, so the process enumerates it. For each operation, `pdd:decompose`
+requires the rows as implications plus a default, checks that they are mutually exclusive, and converts each
+antecedent to DNF; the longest conjunct gives `k`, and the table is in `k`-DNF. Two arrays follow:
+
+- **PTEST** — one row per term, that term's literals positive and every other term of the same rule negated.
+  The negations are the point: with `ab + cd → R1`, an input that satisfies both terms passes even when the
+  implementation ignores `a` and `b`, so masking hides the defect.
+- **NTEST** — a covering array of strength `k` over the table's whole variable universe, constrained by the
+  negation of the rule's antecedent, every row expecting the named default or refusal class.
+
+Numeric inputs are cut into equivalence classes with boundary representatives, never drawn from a range. The
+`(operation × state)` matrix is enumerated, so a forbidden move is a row expecting `refuse:<class>` rather
+than a comment. Because every row of one array carries the same expectation, the oracle is free — which is
+why a large array is not a maintenance burden, and why the reference model must be right.
+
+The claim on a green run is bounded, and it is stated: *no defect outside a term of `k` literals*. Beyond
+`k`, detection is partial, and the report says so. Nothing here is sampled, so nothing shrinks, no seed is
+pinned, and no regression corpus accumulates; the arrays are derived from the table and regenerate with it.
+The one cost the method adds is honest: the transcribed table is a second copy of the rules and can drift,
+so the mutated-table control — change one literal, the suite must redden — is a gate rather than advice.
+
+`skills/decompose/references/testing-methodology.md` is the only place a test is specified.
+
 ## Design philosophy
 
 The process is built on one asymmetry: the cost of writing a change has collapsed, while the cost of
 verifying one has not. Every design decision follows from choosing evidence, not throughput, as the binding
-constraint — acceptance is typed, tasks are classified by acceptance object, and the unit of modelling is the
-business flow.
+constraint — acceptance is typed, tasks are classified by acceptance object, and the unit of testing is a
+decision table, with its completeness claim bounded by a declared strength.
 
-Read [DESIGN.md](DESIGN.md) for the full argument: the bounded-step falsification thesis, the four task
-classes and where they come from, the three shapes of verification (modelling / behavioural guard /
-architecture check), the two gates, and the costs the process accepts.
+Read [DESIGN.md](DESIGN.md) for the full argument: the enumeration thesis and why a bounded completeness
+claim beats a statistical one, the four task classes and where they come from, the three shapes of
+verification (decision-table coverage / behavioural guard / architecture check), the two gates, and the costs
+the process accepts.
 
 ## Requirements
 
