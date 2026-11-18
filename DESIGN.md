@@ -124,7 +124,7 @@ The gates are not process decoration; they are the operational form of two facts
 
 Four rules carry most of the regime's reliability:
 
-- **Every check must have a demonstrated failure mode.** `mutate_check.py` executes this: perturb one byte at an exactly-once anchor, run the check, restore, rerun. Red under the perturbation, green after restoration, byte-identical — or the check cannot see that error.
+- **Every check must have a demonstrated failure mode.** The worker executes this: perturb one byte at an exactly-once anchor, run the check, restore, rerun. Red under the perturbation, green after restoration, byte-identical — or the check cannot see that error.
 - **Count > 0.** Green without executed volume is unfinished work. Selecting zero cases and exiting zero is not a pass.
 - **A flaky red is measured, not rerun.** A property that fails once in a few dozen runs is usually drawing a rare value class. Acceptance requires *N random seeds (≥ 20) green plus the fixed seed green*, and the fix must narrow the value domain or pin the triggering value — not raise the draw count until the symptom hides.
 - **The cut is audited by readers who did not write it.** A wrong scope or an undecidable acceptance criterion is invisible to the author of the cut, because the cut was made from the same understanding that produced the error, and it is expensive to the reader, because the mistake surfaces only after the work behind the task is sunk. `ceil(n/3)` read-only auditors therefore read the finished cut, three tasks each, and their findings are reproduced by the main agent before any of them is adopted.

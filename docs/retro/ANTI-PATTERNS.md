@@ -1,5 +1,6 @@
 # Anti-patterns — pdd
 
+
 One line per anti-pattern extracted from an incident report in this directory. Ids are never reused or
 renumbered; a retired id stays in the table with `retired` in the state column.
 

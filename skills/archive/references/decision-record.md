@@ -92,7 +92,7 @@ The per-record blocks are the evidence; the register is the index a reader scans
   a moved plan, a rewritten history.
 - **`date`** is `YYYY-MM-DD` or `undated`. `undated` rows sort last and lose every conflict (§4).
 - The detailed block for each id lives below the table, or in `eras/NN-<slug>.md` when the table grows past a
-  screen. The table is what `check_history.py` parses; the blocks are what a human reads.
+  screen. The table is the machine-readable half; the blocks are what a human reads.
 
 ## 3. Dating
 

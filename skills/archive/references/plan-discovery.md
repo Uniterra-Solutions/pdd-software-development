@@ -1,7 +1,7 @@
 # Finding the plans
 
 The inventory decides everything downstream: which batches exist, what may be deleted, and how honest the
-archive's coverage claim is. `scripts/find_plans.py` builds the first draft; the main agent corrects it.
+archive's coverage claim is. The commands in `SKILL.md` §1 build the first draft; the main agent corrects it.
 
 ## 1. What counts as a plan
 
@@ -51,7 +51,7 @@ than by accident.
 
 ## 2. The inventory columns
 
-`python3 scripts/find_plans.py <root>` prints one TSV row per candidate:
+One row per candidate, from the four commands in `SKILL.md` §1:
 
 | Column | Meaning | Why it matters |
 | --- | --- | --- |

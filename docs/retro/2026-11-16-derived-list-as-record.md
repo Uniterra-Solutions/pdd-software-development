@@ -1,5 +1,8 @@
 # 一份被算短的清單，讓兩個 unit 什麼都沒做 — 2026-11-16
 
+> 後續（2026-11-18）：本 plugin 已不再隨 skill 附腳本。下文提到的 checker 與 `scripts/` 路徑均已移除，其職責改由回合內的命令與閱讀承擔 —— 事故的教訓不變，當時的修正手段已過時。
+
+
 ## 事件
 
 `study_delta.py` 產出的 touched-path 清單對兩個 unit 缺少路徑，而兩者的 `files` 計數非零。subagent 以

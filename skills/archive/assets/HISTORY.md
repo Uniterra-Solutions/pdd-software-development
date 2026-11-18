@@ -1,6 +1,6 @@
-<!-- Template for docs/history/index.md. Keep the table columns exactly: check_history.py
-     reads them. One row per discovered plan, written before its deletion, with the commit
-     filled in afterwards. -->
+<!-- Template for docs/history/index.md. Keep the table columns exactly: the coverage read
+     compares them row by row. One row per discovered plan, written before its deletion, with
+     the commit filled in afterwards. -->
 
 # Project history — index
 
@@ -50,8 +50,9 @@ is in scope; it only decides what the reader should expect inside it.
 ## Re-running
 
 ```bash
-python3 <plugin>/skills/archive/scripts/find_plans.py .        # inventory; new plans appear here
-python3 <plugin>/skills/archive/scripts/check_history.py .     # acceptance, coverage and deletion audit
+find .plan -maxdepth 2 -type d                                  # inventory; new plans appear here
+git log -1 --format=%cs -- {plan}                               # last commit; empty means untracked
+git log --diff-filter=D --name-only -- .plan                    # deletion audit
 ```
 
 A re-run **appends**: new `D`/`E` ids continue the sequence, existing rows are edited only when a newer plan

@@ -284,5 +284,6 @@ npx -y @mermaid-js/mermaid-cli -i block.mmd -o block.svg          # documents
 npx -y @mermaid-js/mermaid-cli -i block.mmd -o block.png -b white # chat, slides
 ```
 
-`check_agents_md.py --render` runs the renderer over every block in a studied file and reports the ones that
-fail, which is the only form of "the diagram is fine" that is evidence.
+Render every block in a studied file before accepting it, one `npx -y @mermaid-js/mermaid-cli` run per
+fence: a rendered image is the only form of "the diagram is fine" that is evidence. A block that fails to
+render is reported as unrendered, never passed as lint-verified.

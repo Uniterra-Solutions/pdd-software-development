@@ -1,7 +1,7 @@
 ---
 name: implement
 description: "Use when a plan must be built: a TASKS.md DAG, or one PRD flow with no tasks."
-version: 2.5.0
+version: 3.0.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -561,10 +561,6 @@ The full catalogue is in `references/pitfalls.md`. The most recurrent:
 - `pdd:decompose/references/testing-methodology.md` — A/B budgets, seeds, shrinking and failure reading.
 - `pdd:decompose/references/ownership-rules.md` — one writer per file and the class boundaries; consult it
   when judging whether a delta is out of bounds.
-- `scripts/mutate_check.py` — negative control: change one byte at an exactly-once anchor, run the check,
-  restore, rerun. Exit 0 means red after the perturbation, green after restoration and byte-identical;
-  1 means the check cannot see that error; 2 means the anchor is missing or ambiguous. Both C's "an injected
-  violation must go red" and B's "the baseline really bites" are executed with it, not described in prose.
 - `references/subagent-charter.md` — the subagent charter: the brief must carry its path; compile only what
   you changed, run only related tests plus your own acceptance tests, follow the repo's naming conventions
   (three levels of authority: configuration → neighbouring modules → language idiom), the action scope, the

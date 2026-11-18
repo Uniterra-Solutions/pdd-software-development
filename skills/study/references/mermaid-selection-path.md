@@ -82,9 +82,10 @@ the detail.
 
 ## 5. Validation
 
-`scripts/check_agents_md.py` verifies the mechanical part of every block: a fenced ` ```mermaid ` block exists,
-it starts with `flowchart`, node ids are well formed, ids are not declared twice with different labels, every
-`B{k}` in the graph has a row, and every row has a `B{k}` in the graph.
+Read the mechanical part of every block against its table: a fenced ` ```mermaid ` block exists, it starts
+with `flowchart`, node ids are well formed, ids are not declared twice with different labels, every `B{k}` in
+the graph has a row, and every row has a `B{k}` in the graph. Then render it — a stray `)` is a lexical error
+to mermaid and invisible to every one of those checks.
 
 A real render is better than a lint when a renderer is available:
 

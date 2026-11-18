@@ -1,7 +1,7 @@
 ---
 name: study
 description: "Use when a repo's business branches must become AGENTS.md."
-version: 1.3.1
+version: 2.0.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -73,17 +73,24 @@ first study is Workflow A; a refresh is Workflow B.
 
 ### 0. Recon: enumerate members and package roots (main agent, cheap)
 
-`python3 scripts/list_members.py {project_root}` prints one row per candidate member and package root:
-`path`, `kind` (`cargo-member` / `npm-package` / `py-root` / `go-module` / `other`), `depth`, `loc`,
-existing `AGENTS.md` / `CLAUDE.md`, and entry-point candidates (bin targets, `[[bin]]`, `main.rs`,
-`main.py`, `__main__.py`, `bin` fields, exported route/app factories). Its `round` column is
-`1 + (number of enclosing units)`, so the plan comes out of the table directly; `--include-other` adds
-manifest-less source directories when a unit is defined only by convention.
+Build one row per candidate member and package root — `path`, `kind` (`cargo-member` / `npm-package` /
+`py-root` / `go-module` / `other`), `depth`, `loc`, existing `AGENTS.md` / `CLAUDE.md`, entry-point
+candidates, and `round` (`1 + the number of enclosing units`, so the plan comes out of the table directly):
 
-Read the output before dispatching anything: it decides the number of rounds. A member the script misses (a build unit with no manifest, a package root defined only by
-convention) is added by hand to the round plan, with the evidence for why it is a member. A directory the
-script lists that is not a unit of behaviour (generated code, `examples/`, vendored third-party trees) is
-removed from the round plan, with the reason.
+- **members are the manifests** — `git ls-files '*Cargo.toml' '*package.json' '*pyproject.toml' '*go.mod'`
+  names every candidate, and the directory holding each file is the member, unless that file carries a
+  `workspace` section (then its glob's directories are the members, not the root);
+- **size and depth** come from `git ls-files {path} | wc -l` and the path's own separators;
+- **entry points** are the greps of `references/branch-survey.md` §1: `main.rs`, `main.py`, `__main__.py`,
+  `[[bin]]`, a `bin` field, a route or app factory. A manifest with neither entry point nor exported surface
+  is a build unit only, and the round plan says so;
+- **manifest-less units** are added by hand when a unit exists by convention alone (a `src/{pkg}/` with its
+  own `__main__`, a directory whose siblings all carry manifests), with the evidence for calling it a member
+  written beside the path.
+
+Read the table before dispatching anything: it decides the number of rounds. A directory that is not a unit
+of behaviour (generated code, `examples/`, vendored third-party trees) is removed from the round plan, with
+the reason.
 
 The round plan is the contract for the rest of the skill. Write it down in the run ledger:
 
@@ -141,9 +148,8 @@ subagent fixes by choosing the more recent reading.
 
 A subagent's self-report is not acceptance, here as in `pdd:implement`. For each `AGENTS.md`, the main agent:
 
-- opens every `file:line` in the branch table and confirms the quoted predicate is at that line
-  (`scripts/check_agents_md.py` does the mechanical half: the file exists, the line is in range, the
-  table's shape is right);
+- opens every `file:line` in the branch table and reads that line (`sed -n '{n}p' {file}`), confirming the
+  quoted predicate is there — the table's shape is not evidence that the line says what the row claims;
 - confirms each branch passes the observability test, and that its row is not a transcription of an
   unrelated `if` (`references/branch-inventory.md` §2);
 - renders each mermaid block and reads the graph against the table: every table branch appears once as a
@@ -167,8 +173,9 @@ Two rules make the index useful rather than decorative:
 
 - **the index points, it does not duplicate.** A sentence that also appears in a member's file will drift
   from it; the root carries the map and the cross-member rules, each child carries its own detail.
-- **the index is generated from `git ls-files`, not from memory.** `scripts/check_agents_md.py --root-only`
-  fails when an `AGENTS.md` exists that the root index does not name, or names one that does not exist.
+- **the index is generated from `git ls-files`, not from memory.** Compare both directions before accepting:
+  `git ls-files '*AGENTS.md'` against the paths the index names, and the paths the index names against the
+  tree. A file the index omits and a row naming a deleted file are one defect seen from two sides.
 
 ## Workflow B — delta refresh (the knowledge base already exists)
 
@@ -179,10 +186,19 @@ say", and it is answered with one diff per unit instead of one study per unit. �
 
 ### 5. Delta recon: the ledger is the refresh's round plan
 
-`python3 scripts/study_delta.py {project_root}` prints one row per recorded unit — `unit`, the `base` its
-provenance names, the number of commits since, the number of touched paths, and a `status` — then the
-commits and touched paths of every unit that moved, the changed paths no unit claims, the knowledge-base
-files that are gone from disk, and the members that have no `AGENTS.md` yet.
+Derive the ledger yourself, one row per recorded unit — `unit`, the `base` its provenance names, commits
+since, touched paths, `status`:
+
+```
+grep -rH --include=AGENTS.md 'generated:' .        # unit → base sha and date
+git rev-list --count {base}..HEAD                  # commits since
+git diff --name-only {base} HEAD                   # net: base against the working tree
+git log --name-only --pretty=format: {base}..HEAD  # touched: every path any commit in the window named
+```
+
+`status` is `current` when the count is zero or no touched path falls under the unit, `moved` otherwise,
+`missing-file` when the file is gone while its directory stands, `new` when a member carries no file. The
+units that moved are then dispatched, and the paths no unit claims go to the root bucket.
 
 **The base is the file's own provenance commit.** Files studied at different times are stale in different
 amounts; a repository-wide base either re-dispatches units whose claims are still true or skips units that
@@ -191,8 +207,8 @@ moved after their own base.
 **Two diffs, because they answer two questions.** `touched` is every path named by any commit in
 `base..HEAD` plus the working tree; `net` is the base against the working tree. Dispatch reads `touched`
 — a handler added in one commit and deleted in the next is still work the inventory predates. Row
-preservation reads `net` — a branch renamed twice and renamed back allows no row to be rewritten. The
-script prints `touched` and checks with `net`.
+preservation reads `net` — a branch renamed twice and renamed back allows no row to be rewritten. Dispatch
+reads `touched`; every preservation claim is then checked with `net`.
 
 Read the table before dispatching. It decides how many subagents there are, and a unit that is `current`
 gets none: a rewrite whose content does not change buries the drift that does.
@@ -230,7 +246,7 @@ The obligations that make a refresh checkable rather than a rewrite:
 - **every row whose cited file ended the window unchanged is copied verbatim** — id, cells, spelling;
 - **ids are stable**: a new branch takes the next free id, an existing id is never renumbered, and a
   branch that no longer exists is removed and named in the report, its id retired and not reused;
-- **provenance moves to HEAD** — `generated: {sha} @ {date}` stays the line `check_agents_md.py` reads,
+- **provenance moves to HEAD** — `generated: {sha} @ {date}` stays the exact line the §5 recon greps for,
   plus `by: pdd:study delta <base8>..<head8>` — even when no row changed, because that commit is the
   record that someone looked;
 - **the sections nobody touched are not rewritten**, so the diff of the knowledge base reads as the diff
@@ -240,20 +256,23 @@ A `new` unit gets the round-1 brief, not this one: there is nothing to diff agai
 
 ### 8. Delta acceptance: nothing stale, no row lost
 
+Three reads, run before the refresh is committed because each compares against the committed version:
+
 ```
-python3 scripts/study_delta.py {project_root} --verify
-python3 scripts/check_agents_md.py {project_root} --stale
+git diff --name-only {base} HEAD -- {unit}     # the unit moved → this file must differ
+git diff --stat -- '*AGENTS.md'                # this file moved → its unit must have moved
+git ls-files '*AGENTS.md'                      # every file the root index names still exists
 ```
 
-`--verify` errors when a file was not refreshed although its unit moved, when a row whose cited file ended
-the window unchanged came back altered or missing, and when a knowledge-base file disappeared while the
-root index still names it. It compares against the **committed** version, so it runs before the refresh is
-committed: one commit per unit after it passes, `{unit}: study delta <base8>..<head8> — +{n} rows, ~{m}
-updated, -{k} retired`, which is the durable record of what was read.
+A file whose unit moved but whose content is byte-identical is a failed refresh; a file whose unit did not
+move but whose rows changed is a silent rewrite (`git diff -- {file}` names the rows); a knowledge-base file
+gone from disk while the root index still names it is a `missing-file`. Once the three reads are clean, one
+commit per unit — `{unit}: study delta <base8>..<head8> — +{n} rows, ~{m} updated, -{k} retired` — which is
+the durable record of what was read.
 
 ## Acceptance
 
-Mechanical (`scripts/check_agents_md.py {project_root}`, exit 0):
+Structural (main agent, one pass per file):
 
 - every discovered `AGENTS.md` carries the required sections inside its `<!-- study:begin -->` block;
 - every branch row has an id, a behaviour, a quoted trigger, a `site` that resolves to a real `file:line`, and
@@ -262,7 +281,7 @@ Mechanical (`scripts/check_agents_md.py {project_root}`, exit 0):
   a missing file;
 - the root index names every `AGENTS.md` in the tree and nothing else.
 
-Judgement (read by the main agent):
+Judgement (the same pass, over the same files):
 
 - [ ] every member in the round plan has exactly one `AGENTS.md`, and no directory has two;
 - [ ] every branch passes the observability test, and the default/fallback path of each entry point is in the
@@ -277,8 +296,7 @@ Judgement (read by the main agent):
 - [ ] the root index names every file, and no sentence in it restates a child's content;
 - [ ] `git status --short` shows only added `AGENTS.md` files — production code untouched.
 
-Delta refresh adds two mechanical checks (`scripts/study_delta.py {project_root} --verify`, exit 0) and
-four judgement items:
+Delta refresh adds the three reads of §8 and five judgement items:
 
 - [ ] no file is stale: its provenance commit is HEAD, or no commit since it touches the unit;
 - [ ] every row whose cited file ended the window unchanged is byte-identical to the committed version,
@@ -299,7 +317,7 @@ four judgement items:
 | An existing `AGENTS.md` / `CLAUDE.md` is present | Study writes only its marked block; human text is preserved verbatim above it; a conflicting human rule is reported, never edited | Overwriting onboarding notes destroys the one part of the file a human maintained |
 | A branch's trigger cannot be resolved | Record `trigger: unknown` plus the searches performed, and report it | A guessed trigger is worse than a gap: it reads as evidence and gets used |
 | The tree has one member | Still one subagent, still the root index | The protocol is what makes the output checkable; skipping it for a small repo gives an unverified file |
-| The tree moved under an existing knowledge base | Run Workflow B: `scripts/study_delta.py` decides the dispatch, one subagent per affected unit, rows with unchanged evidence copied verbatim | A full re-run rewrites files whose claims are still true, and the real drift drowns in the churn |
+| The tree moved under an existing knowledge base | Run Workflow B: the §5 ledger decides the dispatch, one subagent per affected unit, rows with unchanged evidence copied verbatim | A full re-run rewrites files whose claims are still true, and the real drift drowns in the churn |
 | A unit's diff is one line | Still its own subagent; its deliverable may be a provenance bump and no row change | "The rows still hold" is a finding, and it must be attributable to a reader |
 | A unit's own `AGENTS.md` is the only file that changed | Not a change: the ledger ignores the file it describes | Counting the map as the territory re-dispatches every unit after every study |
 | Two units cite the same moved file | The deepest recorded unit owns the row; the shallower one only re-resolves its citation | Two owners of one fact is how two files come to disagree |
@@ -332,27 +350,26 @@ four judgement items:
   diff never touched disappear quietly and the knowledge base's own diff shows churn no code change explains
   → rows whose cited file ended the window unchanged are copied verbatim, and `--verify` fails when they are
   not.
-- **The checker run against a unit directory, not the repository root.** `check_agents_md.py crates/x` makes
-  that directory the `root` for citation resolution, so every cross-member citation (`crates/y/src/...`,
-  `scripts/...`) reports "cited file does not exist" — 9 clean units looked like 9 broken ones this way. Run it
-  as `check_agents_md.py .` from the repo root and attribute each `ERROR` line to the `=== {path} ===` header
-  above it.
+- **Citations resolved against a unit directory instead of the repository root.** Every `site` and every
+  auxiliary `path:line` is repository-relative, so reads made from `crates/x/` turn nine clean units into nine
+  "cited file does not exist". Open every citation from `{project_root}` and attribute each miss to the row
+  that carries it before calling the row wrong.
 - **A preserved row carrying a dead auxiliary citation.** Preservation keys on the site cell's file, so a
   secondary `path:line` in the same row can rot while the row is frozen, and the two gates then contradict each
-  other → `delta-refresh.md` §6b: repair the citation, freeze the site cell and the wording, name the repair in
-  the report. `study_delta.py --verify` normalises off-site citations so the repair passes.
+  other → `delta-refresh.md` §6b: repair the citation, freeze the site cell and the wording, and name the
+  repair in the report.
 - **A net diff read as the whole history.** A branch added in one commit and deleted in the next leaves no
   trace in `git diff base..HEAD`, so the unit looks untouched → dispatch on `touched`, verify preservation
   on `net`.
 - **One subagent for the whole delta.** A wrong row no longer names a directory, so the repair becomes an
   investigation instead of a re-dispatch.
-- **Provenance bumped without reading the diff.** `--stale` goes quiet, the file looks maintained, and the
-  next reader trusts claims nobody checked.
-- **A graph nobody rendered.** A stray `)` in a node label is invisible to `check_agents_md.py` (citations and
-  table shape are fine) and to `--verify` (the row did not move), and the subagent that wrote it reported
-  "lint only — no chromium here". As root, chromium needs `--no-sandbox`, so the naive `npx mermaid-cli`
-  invocation fails in a way that reads as "rendering unavailable" → `scripts/render_graphs.py` carries the
-  config and must be the last gate of every round.
+- **Provenance bumped without reading the diff.** The staleness read goes quiet, the file looks maintained,
+  and the next reader trusts claims nobody checked.
+- **A graph nobody rendered.** A stray `)` in a node label is invisible to every other check here (citations
+  resolve, the row did not move), and the subagent that wrote it reported "lint only — no chromium here". As
+  root, chromium needs `--no-sandbox`, so a bare `npx @mermaid-js/mermaid-cli` fails in a way that reads as
+  "rendering unavailable" → render with an explicit puppeteer config (`-p puppeteer-config.json` carrying
+  `args: ["--no-sandbox"]`) as the last step of every round, and treat "lint-verified only" as unverified.
 - **Rows renumbered after a retirement.** Every mermaid terminal and every quoted id downstream now points
   at the wrong branch, and nothing errors.
 
@@ -363,16 +380,16 @@ four judgement items:
 > `skill_view("pdd:report", "references/gate-discipline.md")`.
 
 - [ ] the round plan exists, with a reason per excluded directory and a stop condition per unfinished one;
-- [ ] `scripts/check_agents_md.py {project_root}` exits 0;
+- [ ] every structural item in Acceptance was read against the files, not against a subagent's report;
 - [ ] every accepted `AGENTS.md` was checked by the main agent against the code, not against the subagent's
       report;
 - [ ] the root index names every file in the tree and restates none of them;
 - [ ] no production file, test or fixture was modified: `git status --short` lists only added `AGENTS.md`.
-- [ ] in a delta, `scripts/study_delta.py {project_root} --verify` exits 0 before each unit's commit, and
-      the ledger's touched paths are all accounted for;
-- [ ] `scripts/render_graphs.py {project_root}` reports `failed 0`. A subagent that could not render says so
-      and the main agent renders: "lint-verified only" is not a verification, because mermaid reports a stray
-      parenthesis as a lexical error and every other gate in this skill passes straight over it.
+- [ ] in a delta, the three reads of §8 were clean before each unit's commit, and the ledger's touched paths
+      are all accounted for;
+- [ ] every mermaid block in every study file was rendered by the main agent. "Lint-verified only" is not a
+      verification, because mermaid reports a stray parenthesis as a lexical error and every other check in
+      this skill passes straight over it.
 
 > Cross-skill references name the sibling skill and the file separately:
 > `skill_view("pdd:decompose", "references/task-splitting.md")`. Every sibling is registered under this
@@ -396,9 +413,3 @@ four judgement items:
 - `references/subagent-brief.md` — the brief the main agent sends, and the report it demands back; §5 is the
   delta brief.
 - `assets/AGENTS.template.md` — the file template, markers included.
-- `scripts/list_members.py` — recon: members, package roots, depths, entry-point candidates.
-- `scripts/study_delta.py` — delta recon (`unit`/`base`/`commits`/`files`/`status`) and delta acceptance
-  (`--verify`: staleness, row preservation, deleted knowledge-base files).
-- `scripts/check_agents_md.py` — acceptance: citations resolve, table shape, provenance, index coverage.
-- `scripts/render_graphs.py` — the last gate: every mermaid block in the study files parses and renders.
-  It carries the puppeteer config, so it works as root where a bare `npx mermaid-cli` does not.

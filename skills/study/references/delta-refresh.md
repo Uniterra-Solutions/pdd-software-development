@@ -11,8 +11,7 @@ line. The root index alone is not a knowledge base: it names files, it does not 
 behaviour.
 
 A repo with several files at different commits is the normal case, and the reason the base is per file
-(§3). A repo with none is Workflow A; `scripts/study_delta.py` says so instead of printing an empty
-ledger.
+(§3). A repo with none is Workflow A, and the recon says so instead of producing an empty ledger.
 
 ## 2. Two diffs, because they answer two questions
 
@@ -112,11 +111,10 @@ looked.
 
 A row can carry several `path:line` tokens: the `site` cell, the trigger, a `notes` cross-reference, an
 example. Preservation keys on **the site cell's file**. So when the site's file ends the window unchanged
-but a *secondary* citation in the same row points at a file that moved, the two gates contradict each other:
-leaving the row alone reds `check_agents_md.py` (`cited file does not exist` / line out of range), and
-repairing it reds `study_delta.py --verify` (`rewritten although their cited file ended unchanged`). A
-refresh that hits this has to guess which gate its author cared about, and both guesses are defensible —
-which means the rule is wrong, not the refresh.
+but a *secondary* citation in the same row points at a file that moved, the two checks contradict each
+other: leaving the row alone fails the citation read (`cited file does not exist` / line out of range), and
+repairing it breaks byte-identity with the committed row. A refresh that hits this has to guess which check
+its author cared about, and both guesses are defensible — which means the rule is wrong, not the refresh.
 
 **Preservation protects the claim, not a dead pointer.** The claim is `id`, behaviour, trigger and the
 `site` cell. A `path:line` token outside the site cell is a citation, and a citation that no longer
@@ -125,13 +123,14 @@ resolves is repaired, with the row otherwise untouched:
 - the site cell stays **byte-identical**, and so do the behaviour and trigger cells;
 - every non-citation word stays byte-identical;
 - the repair is listed in the report (`auxiliary repaired: {id}: old → new, the line that proves it`);
-- `study_delta.py --verify` normalises off-site citations before comparing, so this repair passes. It
-  still fails a row whose site cell moved while its file did not, or whose wording changed.
+- the citation read tolerates a repaired auxiliary pointer while the site cell and the wording stay
+  byte-identical; a row whose site cell moved while its file did not, or whose wording changed, is still a
+  finding.
 
 Verify the new line by its **text**, never by arithmetic on the old offset: `git show {base}:{file} | sed -n
 '{n}p'` to get the old line, then `grep -n` for that same text in the new tree. The one case this cannot
 cover is a pointer that is in range but wrong (a function pushed 49 lines down by an unrelated insertion) —
-`check_agents_md.py` cannot see it either, so the row's own quoted predicate is the evidence, and the report
+no check in this skill sees it either, so the row's own quoted predicate is the evidence, and the report
 says it was re-read.
 
 ## 7. The brief
@@ -164,8 +163,9 @@ was not given.
 ## 9. Acceptance
 
 ```
-python3 {plugin}/skills/study/scripts/study_delta.py {root} --verify     # rows, staleness, deletions
-python3 {plugin}/skills/study/scripts/check_agents_md.py {root} --stale  # citations, shape, index
+git diff --name-only {base} HEAD -- {unit}   # moved unit → this file must differ
+git diff --stat -- '*AGENTS.md'              # moved file → its unit must have moved
+git ls-files '*AGENTS.md'                    # every file the root index names still exists
 ```
 
 The first checks three things the second cannot: that no file is stale, that a row whose cited file

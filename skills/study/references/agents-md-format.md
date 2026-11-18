@@ -56,7 +56,7 @@ Or `None — this directory is a leaf; no deeper unit owns an entry point.`
 
 - generated: `<40-char commit>` @ `<YYYY-MM-DD>`
 - by: `pdd:study` round `{n}`
-- re-check: `python3 {plugin}/skills/study/scripts/check_agents_md.py {project_root}`
+- re-check: `git log -1 --format=%h` against `generated:`, then `git diff --name-only {base} HEAD -- {unit}`
 <!-- study:end -->
 ```
 
@@ -148,15 +148,14 @@ Two write rules follow from that:
 
 - **Preservation.** A row whose cited file ended the window unchanged is copied byte for byte — id, cells,
   spelling, notes. Rewording it is a claim that the code changed, and the diff says it did not.
-  `scripts/study_delta.py --verify` compares against the committed version and fails when such a row moved or
-  vanished.
-- **Provenance.** `generated:` keeps its shape, because that is what the checker reads; the refresh records
+  `git diff -- {file}`, read before the refresh is committed, shows whether such a row moved or vanished.
+- **Provenance.** `generated:` keeps its shape, because that is what the recon greps for; the refresh records
   where it came from on the next line:
 
 ```markdown
 - generated: `{head sha}` @ `<YYYY-MM-DD>`
 - by: `pdd:study delta <base8>..<head8>`
-- re-check: `python3 {plugin}/skills/study/scripts/check_agents_md.py {project_root}`
+- re-check: `git log -1 --format=%h` against `generated:`, then `git diff --name-only {base} HEAD -- {unit}`
 ```
 
 `round {n}` belongs to a first study. A file refreshed twice carries the latest base, and the chain of earlier

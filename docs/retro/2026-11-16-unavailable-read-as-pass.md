@@ -1,5 +1,8 @@
 # 一個從未渲染的 mermaid 圖通過了所有閘門 — 2026-11-16
 
+> 後續（2026-11-18）：本 plugin 已不再隨 skill 附腳本。下文提到的 checker 與 `scripts/` 路徑均已移除，其職責改由回合內的命令與閱讀承擔 —— 事故的教訓不變，當時的修正手段已過時。
+
+
 ## 事件
 
 subagent 回報「lint only — no chromium here」，主 agent 接受該說法，沒有自行渲染。該單元的 mermaid

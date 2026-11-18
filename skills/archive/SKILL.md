@@ -1,7 +1,7 @@
 ---
 name: archive
 description: "Use when old plans must become one history document."
-version: 1.0.3
+version: 2.0.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -61,9 +61,12 @@ rejected, it is a fact about the project, and facts belong in the timeline, not 
 
 ### 1. Discover, then batch at three
 
-`python3 scripts/find_plans.py <project_root>` prints one row per plan: path, the artefacts it holds
-(`PRD`, `TASKS`, `tasks/`, `AMENDMENTS`), first and last commit date, tracked or untracked, whether the current
-workflow still references it, and whether `docs/history/index.md` already covers it.
+Build one row per plan — path, the artefacts it holds (`PRD`, `TASKS`, `tasks/`, `AMENDMENTS`), first and
+last commit date, tracked or untracked, whether a live document still references it, and whether
+`docs/history/index.md` already covers it. Four commands fill the row, in order: `find .plan -maxdepth 2
+-type d` for the plan list, `ls {plan}` for the artefacts, `git log -1 --format=%cs -- {plan}` for the last
+commit (empty output means untracked), and `grep -rln '{plan}' --include='*.md' . | grep -v docs/history`
+plus a read of `index.md` for the last two columns.
 
 Read that table before dispatching:
 
@@ -133,9 +136,10 @@ commit hash: the commit is what still resolves after the file is gone.
 Only after `docs/history/` is accepted, and only what is covered. The full procedure is
 `references/deletion.md`; the parts that must not be improvised:
 
-1. **Coverage gate.** `python3 scripts/check_history.py <project_root>` must report every plan as covered, and
-   zero unresolved conflicts — every disagreement already collapsed into its newest record. A plan with no record is either summarised properly or excluded from the
-   deletion set, with the reason written in `index.md`.
+1. **Coverage gate.** Read `docs/history/index.md` against the §1 inventory: every plan is covered by a record
+   or listed as excluded with a reason, and no conflict is left with two rows standing — every disagreement
+   already collapsed into its newest record. A plan with no record is either summarised properly or excluded
+   from the deletion set, with the reason written down.
 2. **Reference sweep.** `grep -rn '<plan path>' --include='*.md'` outside `docs/history/` — a live document that
    still sends a reader to a plan about to disappear is a broken link. Fix the reference first (point it at
    `docs/history/decisions.md`), then delete.
@@ -151,7 +155,7 @@ ids it produced. That row is what makes "we deleted it and git has it" a fact ra
 
 ## Acceptance
 
-Mechanical (`scripts/check_history.py <project_root>`, exit 0):
+Structural (read against `docs/history/`, not against a subagent's report):
 
 - every discovered plan is either covered by a record or listed as excluded with a reason;
 - every decision row has an id, a date or `undated`, a reason, a `path:line` citation, a source plan and a status;
@@ -196,8 +200,14 @@ Judgement (read by the main agent):
   produces a plausible story with no author. Cite the plan or the commit, or mark the reason unknown.
 - **Skipping a plan because its format is unfamiliar.** The excluded plan is usually the oldest one, which is
   the one whose reasoning exists nowhere else → classify the format and summarise by assertion.
-- **A cell containing a literal `|`.** `check_history.py` splits a register row on `|` without honouring escapes, so a `\|` inside `decided` or `because` still splits the row and the row drops out of the register entirely — the conflict rule, the graph agreement and the id-for-id accounting all stop seeing it (a 528-row register parsed as 523, with only the missing ids to show for it) → strip the character when emitting cells; backslash-escaping does not work, and the checker reports the cell count and names this cause.
-- **`--render` as root.** `mmdc` launches Chrome with no `--no-sandbox`, which fails when the process runs as root and reports the failure once per block — indistinguishable from a mermaid syntax error. `check_history.py` now passes `{"args":["--no-sandbox","--disable-setuid-sandbox"]}` as a puppeteer config whenever `geteuid() == 0`, so a render failure on a root box is a real syntax error; a manual `mmdc` run still needs the same config.
+- **A cell containing a literal `|`.** A register row is a markdown table row, so a `\|` inside `decided` or
+  `because` still splits it and the row drops out of the table entirely — the conflict rule, the graph
+  agreement and the id-for-id count then stop seeing it (a 528-row register rendering as 523, with only the
+  missing ids to show for it) → write `│` or spell the alternation out, and count the rows against the ids.
+- **`--render` as root.** `mmdc` launches Chrome with no `--no-sandbox`, which fails when the process runs as
+  root and reports the failure once per block — indistinguishable from a mermaid syntax error. Pass
+  `{"args":["--no-sandbox","--disable-setuid-sandbox"]}` as a puppeteer config on any root box, so that a
+  render failure is a real syntax error rather than a sandbox complaint.
 - **A register that keeps both sides of a conflict.** Two rows assert different rules and every reader has to
   decide which to believe → the newest record wins, the older claim survives only as a pointer inside it, and the
   replacement is cited so the change is auditable.
@@ -220,10 +230,10 @@ Judgement (read by the main agent):
 > A gate is only a gate while it can fail for the right reason. Before trusting a green run:
 > `skill_view("pdd:report", "references/gate-discipline.md")`.
 
-- [ ] `scripts/find_plans.py` was run, and its inventory matches what was batched (`ceil(n/3)` batches, ≤3 each);
+- [ ] the §1 inventory exists and matches what was batched (`ceil(n/3)` batches, ≤3 each);
 - [ ] every subagent report was checked against the plans by the main agent, citation by citation;
-- [ ] `scripts/check_history.py` exits 0 after phase 3 and again after phase 4;
-- [ ] every mermaid block renders (`check_agents_md.py --render` from `pdd:study`, or `mermaid-cli` directly);
+- [ ] every structural item in Acceptance was re-read after phase 3 and again after phase 4;
+- [ ] every mermaid block was rendered (`npx @mermaid-js/mermaid-cli`, with a puppeteer config on a root box);
 - [ ] every deleted path is recoverable at the commit named in the index;
 - [ ] `git log --diff-filter=D --name-only` lists only plan paths, and `git status --short` is clean.
 
@@ -239,5 +249,3 @@ Judgement (read by the main agent):
 - `references/subagent-brief.md` — the brief the main agent sends, and the report it demands back.
 - `references/deletion.md` — the delete step: coverage gate, reference sweep, tracked-only rule, verification.
 - `assets/HISTORY.md` — the `docs/history/index.md` template.
-- `scripts/find_plans.py` — inventory and batching input.
-- `scripts/check_history.py` — acceptance: coverage, graph/register agreement, deletion audit.

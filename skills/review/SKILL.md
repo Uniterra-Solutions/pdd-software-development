@@ -1,7 +1,7 @@
 ---
 name: review
 description: "Use when a finished plan needs an independent verdict."
-version: 2.2.1
+version: 2.3.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -89,7 +89,8 @@ never compress the brief.
 | `removal` | **code reading** | absence proof, the tests that die with it, residue |
 
 **Look at `Class`, not at the `REQ` kind.** When a `REQ-A` is delivered by a verification C task, the
-reviewer of that task is test-construction — whether that C check bites is one `mutate_check` command away.
+reviewer of that task is test-construction — whether that C check bites is one deliberate violation away:
+inject it, watch the check go red, restore, watch it go green.
 Code-reading reviews only the parts with no objective standard: a migration's structural choices, a
 removal's residue, architecture declarations with no check, naming and structure.
 

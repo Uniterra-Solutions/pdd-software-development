@@ -8,8 +8,8 @@ files, committed one plan at a time, and verified by reading git back.
 Nothing is deleted until all five hold. Each one is cheap; skipping any of them is how an archive destroys the
 only evidence for its own claims.
 
-1. **Coverage.** `python3 scripts/check_history.py <root>` reports every plan as `covered` or `excluded` with a
-   reason, with zero errors. A plan with no record is summarised first, or excluded and named.
+1. **Coverage.** Read the index against the inventory: every plan is `covered` or `excluded` with a reason,
+   and no plan is missing a record. A plan with no record is summarised first, or excluded and named.
 2. **Conflicts collapsed.** No subject has two `accepted` rows. The newest claim is the row; the older one is a
    pointer inside it (`references/decision-record.md` §4).
 3. **Reference sweep.** No live file outside `docs/history/` still points at the plan -- sweep **every tracked

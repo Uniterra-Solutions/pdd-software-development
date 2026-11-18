@@ -108,7 +108,7 @@ project:         {project root}                      ← read-only
 your unit:       {member or package_root path}       ← the whole of your assignment
 your output:     {unit}/AGENTS.md                    ← the only file you may edit
 base:            <40-char commit>                    ← the `generated:` line the file carries now
-touched:         <the unit's paths from study_delta.py, one per line>
+touched:         <the unit's paths from the §5 recon, one per line>
 current file:    {unit}/AGENTS.md                     ← your input, not a draft to replace
 rules:           {plugin}/skills/study/references/branch-inventory.md
                  {plugin}/skills/study/references/branch-survey.md
