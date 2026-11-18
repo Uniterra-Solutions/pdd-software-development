@@ -39,6 +39,8 @@ decision was made.
 
 ## When not to use
 
+- The record is three crisp statements with no fork, no chain and no open question. Prose already
+  answers what a diagram would. This skill is optional, and it runs only behind `pdd:brainstorm`.
 - There is no `notes/summary.md`. Drawings built on a conversation that was never written down inherit
   every ambiguity the record was supposed to remove — run `pdd:brainstorm` first.
 - The user wants a diagram of a codebase, an API or the delivered architecture. That has a source of

@@ -55,24 +55,28 @@ skill_view("pdd:decompose", "references/task-verification.md")
 
 ## The recommended flow
 
-Five steps, in this order. Two of them are conditional, and the conditions are properties of the work
-rather than matters of preference. Step 0 below is not a skill call but a precondition, and it pays for
-itself whenever the change binds to an external framework.
+Five steps, in this order, preceded by two optional ones that apply only when the request itself is not
+yet clear. Two of the five are conditional, and the conditions are properties of the work rather than
+matters of preference. The vendoring precondition below is not a skill call, and it pays for itself
+whenever the change binds to an external framework.
 
 | # | Step | What it settles | Required |
 | --- | --- | --- | --- |
+| 0a | `pdd:brainstorm` | What the request actually says — the terms defined, the claims separated from the observations under them, the open questions named | **optional** — only when the idea is unclear. A request that already states one falsifiable behaviour, with its actors and its refusal, goes straight to `pdd:plan` |
+| 0b | `pdd:visualize` | Whether the clarified record has a structure the user can argue with — one question per diagram, open questions dashed | **optional** — only after `0a`, and only when the record is flat enough that reading it changed nothing |
 | 1 | `pdd:plan` | The behaviour the change must have — one section per flow, `REQ-F` / `REQ-A` — before a single task exists | yes |
 | 2 | `pdd:decompose` | The four task classes, one dependency graph, the two gates, and an audit of the cut's scope and acceptance criteria | **conditional** — a multi-behaviour or architectural change needs it; a PRD naming one flow goes straight to `pdd:implement`, which cuts the slices for that one dispatch and persists none |
 | 3 | `pdd:explain` | Whether the plan as a whole can be followed by someone who will never read the code | **optional** — the comprehension check |
 | 4 | `pdd:implement` | The build: batch by batch, every task accepted by its class — or, with no tasks, one flow cut into slices and accepted against the requirement each serves — each batch merged back into the recorded branch | yes |
 | 5 | `pdd:review` | An independent reading of the PRD and the tasks, against the delivered diff | **optional** — see below |
 
-The companions sit outside the chain: `pdd:study` runs before step 1 when the codebase has no map,
-`pdd:brainstorm` runs before step 1 when the request itself is unfinished (it opens the plan directory and
-fills `notes/`, writing no PRD section), `pdd:visualize` runs whenever that record needs to be seen,
-`pdd:archive` runs after step 5 when the plan is retired, and `pdd:report` runs whenever a step misfires.
+`0a` and `0b` are skills rather than companions, and both are skippable: they open the plan directory and
+write only `<plan-dir>/notes/`, so skipping them leaves the plan directory exactly as `pdd:plan` would have
+created it. The companions sit outside the chain: `pdd:study` runs before step 1 when the codebase has no
+map, `pdd:archive` runs after step 5 when the plan is retired, and `pdd:report` runs whenever a step
+misfires.
 
-### Step 0 — vendor the frameworks you bind to, then study them
+### Precondition — vendor the frameworks you bind to, then study them
 
 Before the first line of code goes against an external framework — an SDK, a state-machine library, an ORM,
 a protocol client — pin the **latest stable release** into the repository and vendor the part of it the work

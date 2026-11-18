@@ -37,6 +37,10 @@ this skill's authority.
 
 ## When not to use
 
+- The request already states one falsifiable behaviour, with its actors, its outcome and its refusal.
+  `pdd:plan` can write from that, and a round of questions only delays it. This skill is optional: it
+  earns its cost when the request cannot yet be written as a single sentence, not as a ritual before
+  every plan.
 - The question has a lookup answer (a date, an API, a price). Answer it; there is nothing to clarify.
 - The request is settled and the work is drafting, decomposing or implementing it — that is another
   skill's job, and asking more questions wastes the user's round.
