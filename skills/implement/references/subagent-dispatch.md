@@ -88,9 +88,9 @@ commands and reads the raw output itself; the report is only an index.
 | Class | Acceptance | What the dispatcher actually does |
 | --- | --- | --- |
 | **construction** | the purpose is observable from the real entry point | triggers the entry point itself (constructs the object, injects a request, runs the CLI once); `git diff --stat` against owned; runs the affected existing suites and the typecheck |
-| **verification A** | the model exists, the property ran, the counterexample is pinned | reads the harness record: seed, sample count, shrunken minimal sequence; confirms every property has a budget |
+| **verification A** | the reference model covers every table, `k` is declared and recomputable, both arrays reconcile, a mutated table makes the suite red | reads the harness record: `k`, class partition, PTEST and NTEST sizes; recounts `|PTEST|` against the term count and reruns the negative control |
 | **verification B** | the baseline was frozen before the change, the same command reruns bit-identical afterwards | compares the hashes of both outputs; confirms the baseline artefact's mtime precedes the change |
-| **verification C** | green before the change, still green after, and an injected violation must go red | runs the check itself; uses `mutate_check.py` to inject a violation, confirms red, restores and confirms byte-identical |
+| **verification C** | green before the change, still green after, and an injected violation must go red | runs the check itself; injects one violation by hand, confirms red, restores and confirms byte-identical |
 | **migration** | every retention-list item has evidence; source set → target set matches; the old path is removed or has an expiry condition | reads the oracle output; `git diff --name-status` against the source and target sets; `grep` for the old symbol, expecting zero |
 | **removal** | absence proof; zero references; the tests that died with it are deleted | runs the reference query and the compile itself; confirms the test files and fixtures disappeared with it |
 

@@ -66,7 +66,7 @@ The criterion must be the one its class demands, and decidable by a command the 
 | Class | The criterion must read | Red flag |
 | --- | --- | --- |
 | construction | this purpose is observable from `<real entry point>` via `<command>` | "the module exists", "tests pass", a purpose only reachable from a unit test |
-| verification A | model at `<path>`, property `<name>` falsifiable within `<budget>`, seeded, shrunk, pinned | a property that restates the implementation; no budget; no seed |
+| verification A | reference model at `<path>`, `k` declared and recomputable, PTEST and NTEST at `<paths>`, every row's expected class named | an array with no `k`; a `k` lower than the table's longest conjunct; a row expecting "an error" |
 | verification B | baseline recorded at `<path>` **before** the change, rerun by `<command>`, compared bit for bit, **plus one perturbation that must make the comparison fail** | a baseline with no timestamp relative to the change; "behaviour unchanged" with no comparison; no perturbation step — a comparison nobody has seen fail |
 | verification C | rule `<quoted REQ-A>`, check at `<path>`, green before the change, still green after, deliberate red recorded | "the check passes"; no injected-violation step; no phase-two emptiness for a rule already violated |
 | migration | oracle `<path/command>` and retention list; source set → target set; old path removed or expiring | no oracle; a retention list of one item; "behaviour preserved" |

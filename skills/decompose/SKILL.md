@@ -1,7 +1,7 @@
 ---
 name: decompose
 description: "Use when a PRD must become typed, dispatched tasks."
-version: 5.3.0
+version: 6.0.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -254,8 +254,8 @@ the `tasks/` directory, its own slice of ids, the class authoring files) and ask
   file also owned by a sibling? does the class match the action the file describes (a move written as
   "create a module" is a construction task pretending to be a migration)?
 - **acceptance** — is the criterion the one its class demands, and is it decidable by a command the task
-  names? construction: an observable purpose reachable from the real entry point. A: a model plus a
-  falsifiable property within a stated budget. B: a baseline frozen before the change, rerun bit for bit.
+   names? construction: an observable purpose reachable from the real entry point. A: a reference model
+   plus two arrays, with `k` declared and every row's expected class named.
   C: all green before and after, plus a deliberate red. migration: an oracle and a retention list. removal:
   an absence proof with zero references.
 - **boundary** — are the declared dependencies sufficient and pointing the right way? is a shared file owned
@@ -452,8 +452,9 @@ remodelled.
   questions per task, the finding table, and what the main agent does with a finding.
 - `references/task-splitting.md` — normative splitting criteria: attributability, coupling exceptions,
   signals, coherence, probing the edges, ownership.
-- `references/testing-methodology.md` — the testing regime: flow as the unit, PBT, budgets, negative
-  controls, where the method breaks. The only place testing is specified.
+- `references/testing-methodology.md` — the testing regime: one decision table per operation,
+   exhaustively covered to `k` by a positive array and a constrained covering array, with class
+   partitions and gates. The only place testing is specified.
 - `references/atomic-task.md` — worked examples of splitting, shapes that must not be split, fragmentation
   counters.
 - `references/ownership-rules.md` — one writer per file, with the four classes' boundaries and the

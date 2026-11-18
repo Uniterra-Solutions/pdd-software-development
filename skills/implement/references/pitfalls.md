@@ -35,8 +35,8 @@ groups.
   or an excuse; the dispatcher runs the same command once, and one command tells them apart.
 - **Rerunning until green.** Rerunning is not fixing. One isolated rerun is allowed to exclude a flake; the
   result is recorded as a waiver, and no further gate budget is spent on it.
-- **A green check that never bit.** A check that always passes proves nothing; C-class injects a violation with
-  `mutate_check.py` and must go red, and B-class confirms its baseline bites the same way.
+- **A green check that never bit.** A check that always passes proves nothing; C-class injects one violation
+  by hand and must go red, and B-class confirms its baseline bites the same way.
 
 ## 3. Gates and ordering
 

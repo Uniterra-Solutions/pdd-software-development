@@ -45,7 +45,7 @@ Every section is required; a section with nothing to say is a sign the step was 
 
 - `skills/refine/SKILL.md` 第 5 步改為先驗後併，`version` 0.1.1 → 0.1.2
 - 反模式索引新增 AP-004
-- 公開：`<owner/repo>#<n>`（新 issue）或 `#<n>`（既有 issue 的 comment）；草稿經 `check_issue.py` 脫敏
+- 公開：`<owner/repo>#<n>`（新 issue）或 `#<n>`（既有 issue 的 comment）；草稿先經脫敏掃描（home 路徑、email、IPv4、sha、否決詞）並附上 `脫敏：…` 一行
 
 ## 回歸判準
 

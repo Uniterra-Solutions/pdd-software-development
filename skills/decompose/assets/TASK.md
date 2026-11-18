@@ -45,15 +45,15 @@
 - **Covers**: `<list of production task ids>`
 - **Shape**: `A modelling` (serves `REQ-F`) | `B behavioural guard` (baseline / rerun) | `C architecture check` (serves `REQ-A`)
 - **Files owned**:
-  - `<model path>` — the model (A)
-  - `<harness path>` — entry, samples, seed (A / B)
-  - `<pin path>` — counterexample pinning (A)
+   - `<model path>` — the reference model: the decision tables transcribed (A)
+   - `<PTEST path>`, `<NTEST path>` — the two generated arrays (A)
+   - `<harness path>` — entry, `k`, class partition (A / B)
   - `<constraint path>` — constraint script and threshold (C)
 - **Steps**:
-  1. <A: read the landed seam, transcribe the decision table | B: run the baseline and record the seed and an output digest>
-  2. <A: add a property for each new command, each with a budget | B: do not touch the baseline artefact>
-  3. <A: run, shrink, pin | B: rerun the same command, compare bit for bit | C: run to all-green before the change, and after the change it must still pass>
-- **Budget**: written in the harness file (sample count, seed, shrink bound, runtime cap per flow)
+   1. <A: read the landed seam, transcribe each operation's decision table | B: run the baseline and record the seed and an output digest>
+   2. <A: declare k and the class partition, then generate PTEST (one row per term) and NTEST (strength-k array under the negation constraint) | B: do not touch the baseline artefact>
+   3. <A: run and record the failing row verbatim | B: rerun the same command, compare bit for bit | C: run to all-green before the change, and after the change it must still pass>
+- **Budget**: written in the harness file (`k`, class partition, both array sizes, runtime cap per flow)
 
 ## Migration
 

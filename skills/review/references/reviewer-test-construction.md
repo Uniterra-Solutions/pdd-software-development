@@ -44,7 +44,7 @@ On writing:
 ## 4. Run, shrink, two legs
 
 1. **Red leg**: run it on this code you are reviewing, paste the failure output and the minimal input.
-2. **Shrink**: shrink the input or operation sequence to the smallest version that still fails (shortest command sequence, smallest parameters).
+2. **Reduce to the row's literals**: a failure from a decision-table array is already minimal — its literal assignment *is* the claim, so paste it as it stands. A case that came from a hand-written sequence is shrunk to the shortest sequence and the smallest parameters that still fail.
 3. **Green leg**: apply a minimal temporary fix in a disposable worktree and confirm it goes green. **Apply only a temporary fix, do not commit, do not leave it in the main tree.** Only when both legs hold is it a counterexample; if one leg fails, the problem is in the test, not in the code.
 4. **Independent fixture**: reproduce each finding with its own fixture; do not inherit the budget or clock exhausted by the previous one.
 
@@ -71,7 +71,7 @@ Per the fields of `references/finding-schema.md`, `axis: functional`, and:
 | --- | --- |
 | Adding a file without looking at the existing tests | The same behaviour has two assertions, which then drift apart |
 | The test asserts the current output | It stays green after the fix, and the defect comes back next time |
-| Doing only the red leg without shrinking | The report gives a five-step sequence and the reader cannot attribute it |
+| Doing only the red leg without reducing the case | The report gives a five-step sequence and the reader cannot attribute it |
 | Relaxing the domain to make the test green | The claim becomes trivially true, which equals no review |
 | Casually changing the production code | The boundary between evidence and implementation disappears |
 | Putting the test in `review_test/` | The product gate never collects it, and it disappears as soon as the worktree is deleted |

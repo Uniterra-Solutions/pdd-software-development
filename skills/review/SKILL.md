@@ -254,7 +254,7 @@ edits no plan.
   list, the hollow-test audit, the cross-module list, the architecture review checklist.
 - `pdd:implement/references/subagent-charter.md` — base charter: compile scope, run only related tests,
   naming, report. The brief carries its path.
-- `pdd:decompose/references/testing-methodology.md` — flow, property, budget and pin definitions; the
-  test-construction reviewer's counterexamples must land inside that regime.
+- `pdd:decompose/references/testing-methodology.md` — decision tables, `k`, the two arrays and the gates;
+   the test-construction reviewer's counterexamples must land inside that regime.
 - `pdd:decompose/references/task-construction.md`, `task-verification.md`, `task-migration.md`,
   `task-removal.md` — the four classes' acceptance objects.

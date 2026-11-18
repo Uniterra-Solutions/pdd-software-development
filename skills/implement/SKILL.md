@@ -190,7 +190,9 @@ Common principles:
   25-draw run, and ten all-green runs at 1.4% have an 87% chance of merely not having drawn it — so "it
   passed on the rerun" is not acceptance. Send it back to the same owner with the mechanism, the
   counterexample and the command; acceptance requires **N random seeds (≥20) all green plus the fixed seed
-  green**, and the fix must narrow the value domain or pin the triggering value, not raise `numRuns`.
+   green**, and the fix must narrow the value domain or pin the triggering value, not raise `numRuns`.
+   Where the suite is a decision-table array the failure is deterministic: the fix corrects the row or
+   the class partition, and a rerun that comes back green with no diff is a changed expectation.
 - **Rerun any "measured X" in a report yourself.** A subagent will write a wrong measurement into a
   deliverable's file header or comment — for instance, claiming `fc.string({unit:'binary'})` produced 168 of
   200 lone surrogate pairs when the true value is 0 (it counted valid pairs), with its tests all green.

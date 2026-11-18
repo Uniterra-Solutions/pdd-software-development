@@ -1,218 +1,238 @@
-# Testing methodology — one business unit, falsified over the whole flow
+# Testing methodology — one decision table, exhaustive up to k
 
-**Status: adopted direction, parameters still open.** This file is the only place in `pdd:decompose` where
-a test is specified. `SKILL.md`, `assets/TASK.md` and `assets/TASKS.md` carry no propositions, commands,
-test paths or proof pairs. §1–§3 record what was removed and why; §4 is the adopted method; §5 lists the
-numbers that still need a ruling.
+**Status: adopted.** This file is the only place in `pdd:decompose` where a test is specified. `SKILL.md`,
+`assets/TASK.md` and `assets/TASKS.md` carry no test text, no expected values and no commands.
 
-## 1. What was removed
+## 1. What this replaces
 
-A per-task contract: one or two formal propositions per task (`forall / pre / obs / post / witness`), each
-with a test site, a single verification command, and a `before:`/`after:` proof pair pasted into the task
-file — enforced by scripts that checked presence (a proposition exists, a pair is pasted). Deleted in
-v3.0.0. What replaced it is §4.
+The regime this file previously carried sampled behaviour: generators over a flow, properties over traces, a
+sample budget, shrinking, reachability measured from a transition log. It was replaced because the discrete
+part of a decision was never sampled in the first place — it was enumerable, and sampling an enumerable
+space produces a probabilistic claim about something already complete. Two judgements from that regime
+survive: **the oracle is designed before the test is written**, and **a check that cannot go red proves
+nothing**.
 
-No field in this file is something a task file must carry. §2 keeps only the diagnosis — why that contract
-grew without bound — because the failure is what has to be avoided, not the machinery that produced it.
+The method below is pseudo-exhaustive: for every decision, every combination of the variable values that
+decision depends on is tested. The claim on a green run is bounded and complete — "no defect in this
+decision outside a stated interaction strength" — not statistical.
 
-## 2. Why the per-task regime produced unbounded test growth
+## 2. The unit: a decision, and the flow that owns it
 
-Four mechanisms, and they compound:
+- The **unit of testing is a decision table's row set** — one table per operation, as `pdd:plan` §3 already
+  requires: inputs, precondition, outcome (`apply`, or `refuse` with a named class), postcondition.
+- The **unit of ownership is the flow** those operations belong to. One verification task owns one flow: its
+  tables, its two arrays, its harness entry point. Two verification tasks may not own the same flow.
+- Task count is not an input. Thirty construction tasks may land three flows; the test volume is a function
+  of those flows' decision tables.
 
-1. **The unit of proof was the unit of construction.** Verification was owed per task, so the suite grew
-   with the number of tasks — and task count is set by parallelism and attribution, not by risk.
-2. **Obtaining a red run was cheapest by writing a new assertion.** Every task paid a new-file tax, and no
-   task ever paid a deletion.
-3. **The gates scored presence, not value.** "A check exists here" is machine-checkable; "this assertion is
-   worth keeping" is not. Only the checkable half was optimised.
-4. **Nothing removed anything.** No step merged or deleted a test, no budget capped the total, no clause
-   priced the suite's runtime. Growth had no counter-force.
+The table transcribed into an executable form is the **reference model**. The arrays are generated from it,
+and the implementation is run against them. The reference model decides expected outcomes; it is never a
+copy of the implementation's own logic.
 
-Net: the suite became the bottleneck, and a regression signal diluted across hundreds of tool-named
-assertions reports failure less usefully than a small set with one owner per invariant. §4 is the
-replacement; §4.9 says what it still does not cover.
+## 3. Why enumerate rather than sample
 
-**Confidence.** This is a mechanism argument read from the withdrawn text, not a measurement of one plan's
-test count.
-
-## 3. Judgements that survived the deletion
-
-- Name the counterexample before writing anything: one concrete input that makes the claim false.
-- Observe the production seam, never a mock's internal calls.
-- Prove an absence last, or it passes vacuously.
-- Name tests after behaviour, never after a task or issue id.
-- One seam, both outcomes observable — a reason to keep the seam coupled, not to double the test count.
-
-## 4. Adopted: the flow is the unit, and property-based testing falsifies it
-
-### 4.1 A flow is command set × state machine × invariants
-
-The unit of verification is a business flow a user can drive end to end — not an endpoint, a module or a
-task.
+A decision table's antecedent is a Boolean expression over a finite set of variables. If no conjunct in it
+has more than `k` literals, then `k`-way combinations cover every combination that any single decision can
+distinguish:
 
 ```
-FLOW deposit
-  states      idle, active, suspended, closed
-  commands    open(amount), deposit(amount), withdraw(amount), close()
-  invariants  balance ≥ 0
-              closed ⇒ no further command applies
-              Σ deposits − Σ withdrawals = balance
+if all faults in a decision are triggered by <= k variables interacting,
+then testing all k-tuples is equivalent to exhaustive testing of that decision
 ```
 
-Task count is deliberately not an input. A plan of thirty tasks may own three flows, and test volume is a
-function of the three flows.
+This is an assumption about the system, not a theorem about it, and it is the assumption a plan states
+explicitly (`§11`). Where it holds, the suite is complete to `k`; where it does not, the suite is a sample
+and must not be described as exhaustive.
 
-### 4.2 The PRD already carries the generator's source
+Keep sampling only where the domain is genuinely unbounded **and** no class partition is declared — a
+free-form string, a timestamp sequence. A decision table is not such a domain.
 
-`pdd:plan` §3 already requires entities with numeric domains, one decision table per operation (inputs,
-precondition, outcome `apply` or `refuse` with a named class, postcondition), states with legal and
-forbidden moves, and the invariants that hold in every state. That is the specification a model-based
-property test consumes:
+## 4. The transform: antecedents to k-DNF
 
-| PRD element | Becomes |
-| --- | --- |
-| Entities with numeric domains | the generators' value space (u64 slot, native units, bps, timestamps) |
-| Decision table rows | command applicability, the `refuse` class set, and the postcondition |
-| States and legal moves | the command mask per state; illegal moves must be refused, not crashed |
-| Invariants | the properties asserted over every trace |
-| Refusals with a named class | the oracle for the negative branch: the exact class, not "an error" |
-
-No new PRD field is needed. A flow whose decision table cannot be written is under-specified, and the
-correct move is to return to `pdd:plan` rather than write a test that guesses.
-
-### 4.3 Three layers, and a count formula without `tasks` in it
-
-| Layer | Owned by | Grows with | Contents |
-| --- | --- | --- | --- |
-| Property layer | the flow | flows × 3–7 properties | invariants, refusal classes, idempotency, monotonicity, conservation |
-| Model / oracle layer | the flow | one per flow | the decision table transcribed as an executable reference, or the invariant set when it is strong enough |
-| Pin layer | the counterexample | distinct findings | one example test per shrunk counterexample, permanent |
+1. Write each operation's table as one implication per row, plus a default row:
 
 ```
-test count ≈ flows × properties + distinct counterexamples found
+(R1 -> outcome1) (R2 -> outcome2) ... (Rm -> outcomem)   else -> default | refuse:<class>
 ```
 
-A pin enters when the flow is falsified and leaves when the invariant it pins is retired — the deletion
-path the old regime lacked.
+2. **Rows must be mutually exclusive** — for any input at most one antecedent matches. If two rows can both
+   match, stop: that is a finding against the table (two rules for one input, and whichever the engine
+   evaluates first wins), not something a test can decide.
+3. Convert each antecedent to DNF and split on the disjunctions. Every resulting conjunction is a **term**
+   `Ti`. The number of literals in the longest term over the table is `k`: the table is in `k`-DNF.
+4. Record `k` per table in the harness file. A table whose terms differ wildly in length (one term of 2, one
+   of 9) sets an expensive `k` for the whole table; splitting the decision is the fix, not lowering `k`.
 
-### 4.4 Finite-step falsification: the budget is part of the contract
+## 5. PTEST — one row per term
 
-Property-based testing proves nothing; it falsifies inside a stated budget. These are contract fields, not
-runner defaults:
+For the consequent under test, designate `(+)` as that outcome and `(-)` as everything else. For every term
+`Ti` of the antecedents that produce `(+)`:
 
-- **Samples.** Per flow per run, stated in the flow's harness file (proposal: 200 on commit, 5 000 nightly).
-- **Seed.** Every failure prints its seed and trace; the seed replays verbatim in CI until the fix lands,
-  then the shrunk trace becomes a pin.
-- **Shrinking minimises command-sequence length.** The reported counterexample is the shortest trace that
-  still violates the property. A shrinker that only reduces numeric arguments hands the reader a five-step
-  trace where one step suffices, and the attribution is gone.
-- **Reachability, not coverage.** The domain claim is "every reachable (command, precondition partition,
-  state) triple runs at least once per run", measured from the generator's transition log. Line coverage
-  says nothing about which business branch ran.
-- **Runtime ceiling.** A median wall time per flow (proposal: 10 s on commit). Without it, bloat relocates
-  from file count to minutes.
-- **Determinism.** No wall clock, no network, no unseeded randomness inside the flow; time and identifiers
-  are injected. A flaky property run is worse than none, because it trains the reader to re-run until green.
+```
+PTEST_i = Ti AND ( AND over j != i of NOT Tj )
+```
 
-### 4.5 Attribution comes from the shrink
+One row per term, all literals of `Ti` positive and every *other* term's literals negative.
 
-A failing property reports a trace: the command sequence, the state before each command, the outcome
-(`apply` or `refuse:<class>`), and the invariant that broke. The first transition in the shrunk trace where
-the observed outcome differs from the decision table is the seam, and that seam belongs to one task in the
-DAG. Attribution therefore survives without one test file per task — which is why shrinking to the shortest
-trace is a contract requirement, not a convenience.
+**Why the negations are there.** With a rule `ab + cd -> R1`, the inputs `1100`, `1101` and `1110` appear to
+test `ab`. They do not: if the implementation ignores `a` and `b`, `cd` still holds and `R1` is returned, so
+the fault is masked. Only `1100` with `c` and `d` forced false exposes it.
 
-A failure reported as `assert false` with no trace is not a test result; it is a bug report with the
-evidence removed.
+Cost is linear in the table: `|PTEST|` equals the sum of terms over the rows producing that outcome.
 
-### 4.6 The four cases that still earn a hand-written test
+When several rows share an outcome, their antecedents are OR'd before splitting — `(R1 + R2) -> Q1` —
+because the implementation owes `Q1` when either holds.
 
-1. **A found counterexample** — pinned, permanent (§4.3).
-2. **A refusal whose class is a security or accounting boundary** — the exact class and message are the
-   contract, and a generator rarely reaches those argument combinations on its own.
-3. **A cross-flow contract** — two flows sharing a table or a lock, meaningful only when both are driven in
-   one trace.
-4. **A surface with no model** — a generated artefact, a template, a migration that cannot run twice.
+## 6. NTEST — a covering array constrained by NOT R
 
-### 4.7 Which task class builds the model, and when
+For the same consequent:
 
-Modelling is a **task of its own class** (`verification`), never a clause inside a construction task, and
-its timing depends on what it protects:
+```
+NTEST = covering array of strength k over the table's whole variable universe,
+        with NOT R as a constraint,
+        every row expecting (-)
+```
 
-| Situation | Shape | Must run |
+`R` is the OR of the antecedents that produce `(+)`; the constraint removes exactly those combinations, so
+every row is a combination that must **not** produce `(+)`. Rows retain all 1- through (`k`-1)-way
+combinations of the remaining space.
+
+The covering array is sound here for one reason: with mutually exclusive antecedents, masking can only
+happen in the negative direction. A positive row that returns `(-)` is a defect; a negative row that returns
+`(+)` is a defect; no row can be rescued by another matching first.
+
+Size grows as `v^k · log n` for `v` values per variable and `n` variables — slowly in `n`, fast in `v` and
+`k`. That is what `§7` and `§10` are for.
+
+## 7. Numeric domains: equivalence classes, never raw values
+
+A numeric input has thresholds. Its classes are defined by the decision, not by the type:
+
+```
+age > 18      classes: {..., 17}, {18}, {19, ...}      representatives 17, 18, 19
+balance >= 0  classes: {..., -1}, {0}, {1, ...}        representatives -1, 0, 1
+0 <= x <= 100 classes: {-1}, {0}, {1..99}, {100}, {101}
+```
+
+Rules:
+
+- `v` in the covering array is the **number of classes**, not the number of representable values. An amount
+  with two thresholds has three classes.
+- Each class is represented by a boundary value in every array row — the threshold itself and its
+  neighbours, never a random draw between boundaries.
+- The class partition is written into the harness file with its thresholds. A class that is not declared is
+  not tested, and the report says so.
+- **The method is exhaustive over classes, not over numbers.** A defect that only fires at `x = 7` when the
+  declared classes are `{<=6}`, `{>=8}` is outside the claim. Declaring classes is the modelling work; a
+  partition with one class per variable is a sample wearing a table's clothes.
+
+## 8. State is a variable, and the matrix is enumerated
+
+The state an operation reads is a column in its antecedent universe, exactly like any other variable.
+
+- Every operation's table names the states in which it applies and the states in which it must refuse.
+- The `(operation x state)` matrix is enumerated: each cell is either an applicable row (a PTEST row or a
+  positive row of another outcome) or a negative row expecting the named refusal class.
+- **Forbidden moves are negative rows, not comments.** "Close on a suspended account is refused" is a row
+  whose expected outcome is `refuse:<class>`; the class name is the oracle, and "an error" is not a class.
+- **Sequences longer than one operation are out of scope** unless the relevant history becomes a state
+  variable. A decision that depends on the previous three commands must either expose that history as a
+  state, or accept that this method does not decide it (`§13`).
+
+## 9. The oracle is free
+
+Every row of one array carries the same expectation: PTEST rows expect their term's outcome, NTEST rows
+expect the default or the named refusal class. No per-row expected value is written by hand.
+
+That is why a large array is not a maintenance burden and why the arrays can be fully automated. It is also
+why the reference model must be right: there is no per-row human check left to catch a wrong table.
+
+## 10. Cost is declared before the arrays are generated
+
+The harness file states, per table:
+
+| Quantity | Formula | Ruling |
 | --- | --- | --- |
-| construction added commands to a flow | A — build the model | after those construction tasks are accepted |
-| migration or removal will touch a modelled flow | B — oracle bracket | baseline **before** the change, verbatim re-run after |
-| a flow exists but nothing models it, and no change is planned | A — build the model, as its own piece of work | whenever it earns its cost |
+| `k` | longest conjunct in the table's k-DNF | fixed by the table, not by preference |
+| `|PTEST|` | sum of terms over the rows with that outcome | linear; no cap needed |
+| `|NTEST|` | `v^k · log n` (measured after generation, not estimated) | cap the product, not `k` |
+| runtime | median wall time per flow | a bloat signal, not a target |
 
-Rules that follow:
+**Never lower `k` to fit the budget.** If `v^k` is impractical, the fix is to partition values into fewer
+classes (`§7`), split the decision into two tables, or record the decision as untested — in that order.
+Lowering `k` silently turns the completeness claim into a false one, and the report cannot show it.
 
-- **Construction tasks own no model and no property.** They land behaviour; where they falsify an existing
-  assertion they update or delete it in the same task (the deletion path).
-- **A verification task owns one flow**: its model file, its harness entry point, its pin file.
-- **A production defect found by a run becomes a construction or migration task.** The verification agent
-  reports the trace and the seed; the main agent opens the task; the affected flow's model and pins are
-  updated after the fix lands. An agent that patches production code from inside a verification task has
-  destroyed the boundary that makes its report believable.
-- **A behaviour-preserving change with no new command** names the invariant that keeps it so, and states
-  whether any existing property reads that surface.
+## 11. What the arrays prove, and the exact bound
 
-Why the order is fixed for new behaviour: a model written before the code exists describes an imagined
-implementation, and properties written against that imagination pin the design fiction. Why it inverts for
-preservation work: an oracle created after the change compares the new code with itself.
+PTEST ∪ NTEST detects faults caused by a **missing, added, or altered term of `<= k` literals**.
 
-### 4.8 Where this method does not hold
+Beyond `k`, the guarantee is partial and stated as such: if the correct term has more than `k` literals and
+is **not** a subset of the faulty term, the fault is still detected; if the correct term **is** a subset of
+the faulty term, only some faults are detected.
 
-Three limits belong in the record, because each one is where the method silently degrades into the regime
-it replaced.
+So every report carries `k` and this bound sentence. "The decision table is exhaustively tested" without
+`k` is an over-claim; with `k` it is a bounded, checkable statement.
 
-- **"Every business branch" is unbounded unless it is defined as the reachable transition set.** The
-  enumerable claim is `(command × precondition partition × state)` reachable under the generator; the
-  unbounded claim includes amount boundaries and interleavings, which no sample count covers. Someone will
-  eventually write generators "for coverage" — that is the new bloat, arriving as generator code rather
-  than assertion code. The counter-force is to name unreachable partitions as out of scope in the flow
-  model, in writing.
-- **The oracle moves cost rather than removing it.** At flow level there is no per-seam expected value, so
-  the property set must be backed by an executable model or by invariants strong enough to pin the answer.
-  Without one of those, "properties" collapse into no-crash, no-negative-balance assertions that pass while
-  the flow computes the wrong number. A flow with no model and no conservation-type invariant should not
-  claim property coverage at all.
-- **Concurrency is not covered by sampling.** Interleavings that violate an invariant are exponentially
-  sparse in random schedules; PBT at any practical sample count misses them. Concurrent flows need
-  deterministic enumeration of linearization points, which is a different harness, and claiming otherwise
-  is the strongest form of false assurance in this document.
+The method tests the implementation against the table. It does not test the table against the business —
+that is `pdd:plan`'s review and `pdd:review`'s job.
 
-### 4.9 What this method does not cover: architectural requirements
+## 12. Preconditions, and the finding each one produces
 
-A `REQ-A` is not verified here. Its acceptance is that the code obeys a declared structure — dependency
-direction, module boundaries, public surface, cycles, complexity, a performance budget — and that is decided
-by an executable constraint check, not by sampling behaviour. Two reasons the methods differ:
+| Precondition | Check | If it fails |
+| --- | --- | --- |
+| antecedents mutually exclusive | compare rows pairwise on shared literals; a pair that can both be true is a finding | report as a table defect; do not test |
+| declared fan-in `<= k` | recompute the longest conjunct from the table text | the table or the `k` declaration is wrong; fix before generating |
+| every operation has a table | `REQ-F` inventory vs tables present | return to `pdd:plan`; a guessed table pins a fiction |
+| refusal classes named | every negative expectation is a class from the table | a row expecting "an error" is not a test |
+| no cross-decision hidden input | every variable an operation reads appears in its universe | add it; an undeclared read is an untested branch |
 
-- **A property test samples inputs; a structural rule quantifies over the tree.** No sample count makes a
-  layering violation visible if the generator never produces the import that causes it.
-- **Performance is an architectural claim.** Order-of-magnitude gains come from structure (an index, a
-  cache boundary, batching, removing a hop), so the acceptance is the measured metric *plus* the structural
-  rule that produces it. A latency property over random inputs is neither necessary nor sufficient.
+## 13. Where the method does not hold
 
-The constraint layer's own quality test is a negative control: introduce the violation on purpose and the
-check must fail. A check that cannot fail proves nothing, exactly as with a property that has no witness.
+- **Long sequences.** Interaction histories beyond one operation are not covered unless modelled as state
+  (`§8`). A flow whose correctness depends on a sequence needs a state-machine treatment with enumerated
+  reachable states — a different object, and one that must not be described as pseudo-exhaustive.
+- **Concurrency.** Interleavings are exponentially sparse in any array; `k`-way combinations do not touch
+  them. Concurrent flows need explicit enumeration of linearization points.
+- **Continuous values between declared classes.** Exhaustive over classes only (`§7`).
+- **Architecture (`REQ-A`).** Decided by a C check — dependency direction, module boundaries, cycles,
+  complexity, performance budget — because no array of behavioural rows makes a layering violation visible.
+- **A decision with many variables and a large `k`.** `v^k` is a real wall; a decision with `k = 6` and six
+  three-valued variables is `729 · log n` rows and should be split, not generated.
 
-## 5. Still open
+## 14. Gates — commands and reconciliations, no scoring scripts
+
+Each gate is a reading or a command run in the turn. None of them scores wording.
+
+1. **`k` is recomputable.** The longest conjunct in the transcribed table equals the `k` in the harness file.
+2. **PTEST reconciles.** One row per term; the row count equals the number of terms for that outcome. Count
+   both sides.
+3. **NTEST reconciles.** Every generated row's expectation is a named class; no row's expectation is blank or
+   "error".
+4. **The matrix is complete.** Every `(operation x state)` cell that the flow model declares appears in
+   some row; a declared state with no row is a hole.
+5. **Boundaries appear.** Every declared class boundary appears in at least one row per variable.
+6. **Negative control.** Change one literal in the reference model — a term loses a literal, or a class
+   boundary moves — and the suite must go red. Restore, rerun, confirm green. A suite that survives a
+   mutated table is testing nothing.
+
+## 15. What a run reports
+
+- `k`, the two array sizes, and the class partition used, per table;
+- the failing row **verbatim** — the literal assignment is already the minimal combination, so no shrink step
+  exists; whoever reads it can attribute it to one table row and therefore to one task;
+- the table row the implementation contradicts, and the observed outcome (`apply`, or `refuse:<class>`);
+- decisions recorded as untested, with the reason (`v^k` wall, sequence dependence, no table).
+
+A failure reported as `assert false` with no row is not a test result; it is a bug report with the evidence
+removed.
+
+## 16. Still open
 
 | # | Question | Candidates |
 | --- | --- | --- |
-| D2 | Concrete sample and runtime numbers | per-commit 200 / nightly 5 000 / 10 s per flow — or one tier |
-| D3 | Pin retention | permanent per finding, or periodic merge of pins that pin the same invariant |
-| D4 | Does a flow with no invariant earn PBT | invariants only, or a reference model is mandatory |
-| D5 | Concurrency | PBT sampling (weak, see §4.8), or bounded enumeration of linearization points |
-| D6 | What the review checklist checks | flow-model completeness (every command and refusal class present), reachability report, runtime ceiling, pin count reported but not gated |
-| D7 | Who may delete a pin | main agent on invariant retirement, or reviewer with a stated reason |
-
-## 6. Consequences for the other files
-
-- No document-verification script exists in this skill: they scored presence, and presence is the half that
-  can be scored.
-- `references/task-verification.md` carries the three shapes (A model, B behaviour bracket, C architecture
-  check) and is the file a verification task is written from.
-- `references/pitfalls.md`, `references/atomic-task.md` and `references/ownership-rules.md` describe the
-  current rules only.
+| D1 | covering array generation | generate with ACTS/IPOG off-line and commit the array, or build it in the harness |
+| D2 | `v^k` cap | a fixed row ceiling, or a per-plan ruling recorded in the task file |
+| D3 | state enumeration depth | one-step matrix only, or enumerated reachable states for flow-critical sequences |
+| D4 | who owns the class partition | the construction task that lands the operation, or the verification task that tests it |
+| D5 | concurrency | declared out of scope per flow, or a separate harness class |
+| D6 | what review checks | `k` recomputation, array reconciliation, matrix completeness, boundary coverage, negative control |
