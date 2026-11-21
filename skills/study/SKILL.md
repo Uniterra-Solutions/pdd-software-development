@@ -1,7 +1,7 @@
 ---
 name: study
 description: "Use when a repo's business branches must become AGENTS.md."
-version: 2.0.1
+version: 2.1.0
 author: Tsz Kin Lai (LaiTszKin), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -102,6 +102,28 @@ round 3: …
 
 Round 2 cannot be planned before round 1 finishes: a nested package root is discovered by reading the
 member's own tree, and inventing it from directory names alone produces rounds for things that are not units.
+
+### 0b. The machine pass (optional — Rust and TypeScript)
+
+`scripts/branch_map_rust.py` and `scripts/branch_map_ts.py` emit what a parser can decide without
+understanding: every decision site with its predicate quoted, the reads that predicate depends on and
+where each comes from, the writes and returns the branch produces, and the unit's state carriers with one
+closure label each (`closed` / `declared` / `open` / `partitioned` / `product` / `registered`).
+
+```
+python3 scripts/branch_map_rust.py --member crates/api
+python3 scripts/branch_map_ts.py --member packages/ui --select 'src/**'
+```
+
+The table is a lower bound and a disposition list, not the inventory. `purity: pure` means the trigger is
+a function of the arguments; `reads object state` means it also depends on the receiver; `impure` means
+this file cannot answer the trigger question at all. Hand it to the subagent as evidence to dispose of —
+every site becomes a row, is merged into a row, or is excluded with a reason — and never paste it into
+`AGENTS.md`, where a row must state a behaviour no parser can name.
+`references/branch-extraction.md` carries the row schema, the closure vocabulary and the constructs the
+pass cannot see (data-driven routing, macros, computed dispatch). It is an aid, not a gate: a unit
+studied without it is still acceptable, and a unit studied with it must still account for the media the
+pass never read.
 
 ### 1. Round 1: one subagent per member
 
@@ -412,4 +434,10 @@ Delta refresh adds the three reads of §8 and five judgement items:
   classifier, the four task kinds, degenerate histories, and the anti-patterns.
 - `references/subagent-brief.md` — the brief the main agent sends, and the report it demands back; §5 is the
   delta brief.
+- `references/branch-extraction.md` — the machine pass: row schema, the closure vocabulary per carrier kind,
+  what purity licenses a row to claim, and the constructs no parser sees.
 - `assets/AGENTS.template.md` — the file template, markers included.
+- `scripts/branch_map_rust.py` — the optional machine pass for a cargo member or package root (needs
+  `tree_sitter` and `tree_sitter_rust`).
+- `scripts/branch_map_ts.py` — the same table for a pnpm/npm workspace package (needs `tree_sitter` and
+  `tree_sitter_typescript`).

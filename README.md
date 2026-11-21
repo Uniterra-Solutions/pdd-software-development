@@ -206,8 +206,12 @@ the process accepts.
 
 - Hermes Agent with plugin support (`hermes plugins doctor .` should pass).
 - Python 3.10+ (the plugin itself has no third-party dependencies).
-- No script ships with the skills. Every gate is a command run in the turn (`git`, `grep`, `find`, `sed`)
-  or a reading recorded in the report, so the loader runs nothing and there is nothing to keep executable.
+- A gate is a command run in the turn (`git`, `grep`, `find`, `sed`) or a reading recorded in the report;
+  the loader runs nothing. Two optional aids are the exception, and both are invoked by hand rather than by
+  the loader: `skills/study/scripts/branch_map_rust.py` and `branch_map_ts.py` need
+  `tree_sitter` with the Rust and TypeScript grammars
+  (`pip install tree_sitter tree_sitter_rust tree_sitter_typescript`). Without them they exit 2 and say so —
+  a parse that silently returns fewer branches would be a gate that cannot fail.
 - Rendering a study graph optionally shells out to `mmdc` or `npx @mermaid-js/mermaid-cli`; without one, the
   graph is lint-read by eye and recorded as unrendered.
 
@@ -223,7 +227,7 @@ skills/decompose/      SKILL.md + assets/ + references/
 skills/implement/      SKILL.md + references/
 skills/review/         SKILL.md + references/
 skills/explain/        SKILL.md + assets/ + references/
-skills/study/          SKILL.md + assets/ + references/
+skills/study/          SKILL.md + assets/ + references/ + scripts/  (branch_map_rust, branch_map_ts)
 skills/archive/        SKILL.md + assets/ + references/
 skills/reproduce/      SKILL.md
 ```
